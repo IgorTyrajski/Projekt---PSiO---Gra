@@ -28,5 +28,6 @@ CMakeLists.txt.user*
 *.tmp
 *.bak
 *.swp
+*.json
 .DS_Store
 Thumbs.db

@@ -1,3 +1,4 @@
+
 *.autosave
 *.pro.user
 *.qbs.user
@@ -16,16 +17,10 @@ CMakeLists.txt.user*
 *.user
 *.idx
 *.pro
-
 *.layout
 *.depend
 *.layout.save
 *.cbTemp
-*.obj
-*.exe
-*.o
-
-# Ogólne
 *.log
 *.tmp
 *.bak
@@ -33,3 +28,9 @@ CMakeLists.txt.user*
 *.json
 .DS_Store
 Thumbs.db
+
+# Makefile i pochodne
+Makefile
+Makefile.Debug
+Makefile.Release
+

@@ -14,6 +14,8 @@ CMakeLists.txt.user*
 *.dll
 *.exe
 *.user
+*.idx
+*.pro
 
 *.layout
 *.depend

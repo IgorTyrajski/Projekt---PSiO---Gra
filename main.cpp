@@ -1,15 +1,18 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
+#include "postac.h"
 
 using namespace std;
 using namespace sf;
+
 int main()
 {
+    Clock clock;
     RenderWindow window(VideoMode(1920, 900), "My window",Style::Fullscreen);
     window.setFramerateLimit(60);
-
     while (window.isOpen()) {
-        sf::Event event;
+        Time elapsed=clock.restart();
+        Event event;
         while (window.pollEvent(event)) {
 
             if (event.type == Event::Closed)

@@ -12,10 +12,11 @@ enum direction {none, left, right, up, down};
 class Postac : public Sprite{
 public:
     Postac (string path_idle){
-        if (!texture.loadFromFile(path_idle)) {
+        if (!texture_temp.loadFromFile(path_idle)) {
             cout << "Could not load texture" << endl;
         }
-        setTexture(texture);
+        setTexture(texture_temp);
+        setOrigin(getLocalBounds().width / 2, getLocalBounds().height / 2);
     }
     void animate(const Time &elapsed, const direction &dir){ //funkcja animowania - przyjmuje czas i kierunek, w ktorym porusza sie obiekt
         const float t=elapsed.asSeconds();
@@ -39,7 +40,9 @@ public:
             move(0,y_speed*t*v_ratio);
         }
     }
-
+    void reset_origin_point(){
+        setOrigin(getLocalBounds().width / 2, getLocalBounds().height / 2);
+    }
     void set_x_speed(const int &xs){
         x_speed=xs;
     }
@@ -53,7 +56,7 @@ public:
 protected:
     float x_speed; //do ustawienia
     float y_speed;
-    Texture texture;
+    Texture texture_temp;
     int v_ratio; //przelicznik predkosci
 
 

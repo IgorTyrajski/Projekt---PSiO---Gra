@@ -1,7 +1,9 @@
+#ifndef POSTAC_H
+#define POSTAC_H
+
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <iostream>
-
 using namespace std;
 using namespace sf;
 
@@ -57,3 +59,4 @@ protected:
 
     bool is_moving=false;
 };
+#endif // POSTAC_H

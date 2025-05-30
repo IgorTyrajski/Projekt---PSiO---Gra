@@ -1,14 +1,18 @@
+#ifndef BOHATER_H
+#define BOHATER_H
+
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
-#include <iostream>
 #include "postac.h"
-
+#include <iostream>
 using namespace std;
 using namespace sf;
 
 class bohater : public Postac{
 public:
-    bohater():Postac(text_path_idle){};
+    bohater():Postac(text_path_idle){
+        setTextureRect(IntRect(3, 13, 18 ,34));
+    };
     void change_frame(int &frame_count){
         //funkcja zmiany klatki animacji
         if (is_moving){ //animacja biegu
@@ -65,3 +69,4 @@ private:
     const string text_path_idle="assets\\bohater\\Cyborg_idle.png";
 
 };
+#endif // BOHATER_H

@@ -5,26 +5,21 @@
 #include <SFML/Graphics.hpp>
 #include "postac.h"
 #include "obiekt.h"
-#include <iostream>
+#include "TextureManager.h"
 using namespace std;
 using namespace sf;
 
 class bohater : public Postac{
 public:
-    bohater():Postac(text_path_idle){
-        if (!run.loadFromFile(text_path_run)) {
-            cout << "Could not load texture" << endl;
-        }
-        if (!idle.loadFromFile(text_path_idle)) {
-            cout << "Could not load texture" << endl;
-        }
-        setTexture(idle);
+    bohater(){
+        setTexture(TextureManager::getInstance().getTexture(text_path_idle));
         setTextureRect(IntRect(3, 13, 18, 34));
     };
     void change_frame(int &frame_count) {
         // funkcja zmiany klatki animacji
         if (is_moving) { // animacja biegu
-            setTexture(run);
+            setTexture(TextureManager::getInstance().getTexture(text_path_run));
+
             int fr = frame_count % 6 + 1;
             switch (fr) {
             case 1: setTextureRect(IntRect(5, 16, 19, 31)); break;
@@ -36,7 +31,7 @@ public:
             }
         }
         else { // animacja dla stania w miejscu
-            setTexture(idle);
+            setTexture(TextureManager::getInstance().getTexture(text_path_idle));
             int fr = frame_count % 4 + 1;
             switch (fr) {
             case 1: setTextureRect(IntRect(3, 13, 18 ,34)); break;
@@ -45,7 +40,6 @@ public:
             case 4: {setTextureRect(IntRect(146, 13, 19, 34)); frame_count = 0; break;}
             }
         }
-
         reset_origin_point();
     }
 
@@ -53,7 +47,6 @@ private:
     int hp;
 
     vector<obiekt> inventory;
-    Texture idle,run;
     const string text_path_run="assets\\bohater\\Cyborg_run.png";
     const string text_path_idle="assets\\bohater\\Cyborg_idle.png";
 

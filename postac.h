@@ -4,6 +4,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include "TextureManager.h"
 using namespace std;
 using namespace sf;
 
@@ -11,13 +12,9 @@ enum direction {none, left, right, up, down};
 
 class Postac : public Sprite{
 public:
-    Postac (string path_idle){
-        if (!texture_temp.loadFromFile(path_idle)) {
-            cout << "Could not load texture" << endl;
-        }
-        setTexture(texture_temp);
+    Postac (){
         setOrigin(getLocalBounds().width / 2, getLocalBounds().height / 2);
-    }
+    };
     void animate(const Time &elapsed, const direction &dir){ //funkcja animowania - przyjmuje czas i kierunek, w ktorym porusza sie obiekt
         const float t=elapsed.asSeconds();
         if (dir==direction::none){
@@ -56,7 +53,6 @@ public:
 protected:
     float x_speed; //do ustawienia
     float y_speed;
-    Texture texture_temp;
     int v_ratio; //przelicznik predkosci
 
 

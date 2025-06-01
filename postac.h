@@ -15,26 +15,26 @@ public:
     Postac (){
         setOrigin(getLocalBounds().width / 2, getLocalBounds().height / 2);
     };
-    void animate(const Time &elapsed, const direction &dir){ //funkcja animowania - przyjmuje czas i kierunek, w ktorym porusza sie obiekt
+    void animate(const Time &elapsed, const direction &dir, const float &x_ratio,const float &y_ratio){ //funkcja animowania - przyjmuje czas i kierunek, w ktorym porusza sie obiekt
         const float t=elapsed.asSeconds();
         if (dir==direction::none){
             move (0.0,0.0);
         }
         if (dir==direction::left){
             x_speed=abs(x_speed)*(-1);
-            move(x_speed*t*v_ratio,0);
+            move(x_speed*t*v_ratio*x_ratio,0);
         }
         else if (dir==direction::right){
             x_speed=abs(x_speed);
-            move(x_speed*t*v_ratio,0);
+            move(x_speed*t*v_ratio*x_ratio,0);
         }
         else if (dir==direction::up){
             y_speed=abs(y_speed)*(-1);
-            move(0,y_speed*t*v_ratio);
+            move(0,y_speed*t*v_ratio*y_ratio);
         }
         else if (dir==direction::down){
             y_speed=abs(y_speed);
-            move(0,y_speed*t*v_ratio);
+            move(0,y_speed*t*v_ratio*y_ratio);
         }
     }
     void reset_origin_point(){

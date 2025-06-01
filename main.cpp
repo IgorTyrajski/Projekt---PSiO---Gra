@@ -28,14 +28,12 @@ int main()
     RenderWindow window(desktop, "My window",Style::Fullscreen); //
     window.setFramerateLimit(60);
 
-
-
     //////////////// background/////////////////////////////
     auto background = make_unique<Sprite>();
     Texture& bgTexture = TextureManager::getInstance().getTexture("assets\\mapa\\floor.png");
     bgTexture.setRepeated(true);
     background->setTexture(bgTexture);
-    background->setScale(3,3);
+    background->setScale(1,1);
     Vector2u windowSize = window.getSize();
     background->setTextureRect(IntRect(0, 0, windowSize.x, windowSize.y));
     set_proper_scale(background, Scale_ratioX,Scale_ratioY);
@@ -44,8 +42,12 @@ int main()
     ////////////////// bohater /////////////////////
     unique_ptr<bohater>hero = make_unique<bohater>();
     hero->setPosition(300,400);
+    set_proper_scale(hero,Scale_ratioX,Scale_ratioY);
     to_draw.push_back(hero.get());
     ////////////////////////////////////////////////
+    ///////////sciany///////////////////////
+
+    ///////////////////////////////////
     int frame_count=0;
 
     while (window.isOpen()) {

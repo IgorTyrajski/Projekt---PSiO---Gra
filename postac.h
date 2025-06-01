@@ -37,16 +37,24 @@ public:
             move(0,y_speed*t*v_ratio*y_ratio);
         }
     }
+    void turn_left(){
+        Vector2f scale = getScale();
+        setScale(-abs(scale.x), scale.y);
+    }
+    void turn_right(){
+        Vector2f scale = getScale();
+        setScale(abs(scale.x), scale.y);
+    }
     void reset_origin_point(){
         setOrigin(getLocalBounds().width / 2, getLocalBounds().height / 2);
     }
-    void set_x_speed(const int &xs){
+    void set_x_speed(const float &xs){
         x_speed=xs;
     }
-    void set_y_speed(const int &ys){
+    void set_y_speed(const float &ys){
         y_speed=ys;
     }
-    void set_v_ratio(const int &ratio){
+    void set_v_ratio(const float &ratio){
         v_ratio=ratio;
     }
 

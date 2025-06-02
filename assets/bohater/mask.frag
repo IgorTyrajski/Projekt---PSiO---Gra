@@ -1,12 +1,19 @@
-uniform vec2 lightCenter;
-uniform float lightRadius;
+uniform vec2 lightCenter;   // pozycja gracza
+uniform float lightRadius;  // promień światła
+uniform vec2 resolution;    // rozdzielczość okna
 
 void main()
 {
-    vec2 pixelPos = gl_FragCoord.xy;
-    float dist = distance(pixelPos, lightCenter);
+    // Pozycja aktualnego fragmentu (piksela) względem lewego górnego rogu okna
+    vec2 pos = vec2(gl_FragCoord.x, resolution.y - gl_FragCoord.y);
 
-    // Zamiast przyciemniać środek, przyciemniamy na zewnątrz
-    float alpha = smoothstep(lightRadius * 0.8, lightRadius, dist);
-    gl_FragColor = vec4(0.0, 0.0, 0.0, alpha); // Czarne z przezroczystością
+    // Oblicz odległość od światła (gracza)
+    float dist = distance(pos, lightCenter);
+
+    // Oblicz jasność: 1.0 w centrum, 0.0 poza zasięgiem światła
+    float brightness = 1.0 - smoothstep(0.0, lightRadius, dist);
+
+    // Kolor czarny, z przezroczystością odwrotnie proporcjonalną do jasności
+    // (im dalej, tym mniej przezroczysty, czyli bardziej czarny)
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0 - brightness);
 }

@@ -64,6 +64,7 @@ void move_hero(unique_ptr<bohater> &hero,Time &elapsed, const float &Scale_ratio
                 hero->animate(elapsed,direction::right,Scale_ratioX,Scale_ratioY);
             }
             hero->turn_left();
+
         }
     }
     if (d){

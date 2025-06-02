@@ -1,0 +1,11 @@
+uniform vec2 lightCenter; // Pozycja światła (np. bohatera) w pikselach
+uniform float lightRadius; // Promień światła (np. 300.f)
+
+void main()
+{
+    vec2 pixelPos = gl_FragCoord.xy;
+    float dist = distance(pixelPos, lightCenter);
+
+    float alpha = smoothstep(lightRadius, lightRadius * 0.8, dist);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, alpha); // Czerń z przezroczystością
+}

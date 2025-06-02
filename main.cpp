@@ -1,7 +1,6 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <vector>
-#include <iostream>
 #include <memory>
 
 #include "funkcje.h"
@@ -30,7 +29,7 @@ int main()
     window.setFramerateLimit(60);
     Vector2u windowSize = window.getSize();
     //////////////// background/////////////////////////////
-    auto background = make_unique<Sprite>();
+    unique_ptr<Sprite> background = make_unique<Sprite>();
     Texture& bgTexture = TextureManager::getInstance().getTexture("assets\\mapa\\tlo.png");
     bgTexture.setRepeated(true);
     background->setTexture(bgTexture);
@@ -40,7 +39,7 @@ int main()
     to_draw.push_back(background.get());
     /////////////////////////////////////////////////
     /////floor/////////////////////////
-    auto floor = make_unique<Sprite>();
+    unique_ptr<Sprite> floor = make_unique<Sprite>();
     Texture& flTexture = TextureManager::getInstance().getTexture("assets\\mapa\\podloga.png");
     floor->setTexture(flTexture);
     floor->setPosition(windowSize.x/2,windowSize.y/2);
@@ -48,17 +47,6 @@ int main()
     set_proper_scale(floor, Scale_ratioX,Scale_ratioY);
     reset_origin_point(floor);
     to_draw.push_back(floor.get());
-    ////////////////////////////////////////////////
-    ////////////////// bohater /////////////////////narazie orientacyjnie
-    unique_ptr<bohater>hero = make_unique<bohater>();
-    hero->setPosition(300,windowSize.y/2);
-    hero->setScale(1.2f,1.2f);
-    hero->set_v_ratio(1.f);
-    hero->set_x_speed(120.f);
-    hero->set_y_speed(120.f);
-    hero->reset_origin_point();
-    set_proper_scale(hero,Scale_ratioX,Scale_ratioY);
-    postacie.push_back(hero.get());
     ////////////////////////////////////////////////
     ///////////sciany///////////////////////
     Image image_sciany;
@@ -73,6 +61,34 @@ int main()
     reset_origin_point(sciany);
     to_draw.push_back(sciany.get());
     ///////////////////////////////////
+    ////////////////// bohater /////////////////////narazie orientacyjnie
+    unique_ptr<bohater>hero = make_unique<bohater>();
+    hero->setPosition(300,windowSize.y/2);
+    hero->setScale(1.2f,1.2f);
+    hero->set_v_ratio(1.f);
+    hero->set_x_speed(120.f);
+    hero->set_y_speed(120.f);
+    hero->reset_origin_point();
+    set_proper_scale(hero,Scale_ratioX,Scale_ratioY);
+    postacie.push_back(hero.get());
+    /////zasłona by bohater widział tylko to co ma widzieć/////
+    //unique_ptr<Sprite> fog_of_war = make_unique<Sprite>();
+    //Texture& fowTexture = TextureManager::getInstance().getTexture("assets\\bohater\\fog_of_war.png");
+    //fog_of_war->setTexture(fowTexture);
+    //reset_origin_point(fog_of_war);
+    //fog_of_war->setPosition(hero->getPosition());
+    //to_draw.push_back(fog_of_war.get());
+
+    Shader fog_of_war;
+    fog_of_war.loadFromFile("assets\\bohater\\mask.frag", Shader::Fragment);
+
+    fog_of_war.setUniform("lightCenter", Glsl::Vec2(hero->getPosition()));
+    fog_of_war.setUniform("lightRadius", 300.f);
+    float aktualny_promien=300.f;
+    RectangleShape mask(Vector2f(windowSize.x, windowSize.y));
+    mask.setFillColor(Color::Black);
+    window.draw(mask, &fog_of_war);
+    ////////////////////////////////////////////////
     int frame_count=0, frame_count_h=0; //frame counter bohatera
 
     while (window.isOpen()) {
@@ -85,7 +101,11 @@ int main()
         }
         window.clear(Color::Black);
         ////////////ruszanie///////////
+
         move_hero(hero,elapsed,Scale_ratioX,Scale_ratioY,image_sciany);
+        //fog_of_war->setPosition(hero->getPosition());
+        fog_of_war.setUniform("lightCenter", hero->getPosition());
+        fog_of_war.setUniform("lightRadius", aktualny_promien);
         if (frame_count%10+1>9){
             frame_count_h++;
         }
@@ -98,6 +118,7 @@ int main()
         for (auto &d : postacie){
             window.draw(*d);
         }
+        window.draw(mask, &fog_of_war);
         window.display();
         frame_count++;
     }

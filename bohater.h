@@ -42,11 +42,15 @@ public:
         }
         reset_origin_point();
     }
+    vector<obiekt> get_obiekty(){
+        return inventory;
+    }
 
 private:
     int hp;
 
     vector<obiekt> inventory;
+    const string text_path_fow="assets\\bohater\\fog_of_war.png";
     const string text_path_run="assets\\bohater\\Cyborg_run.png";
     const string text_path_idle="assets\\bohater\\Cyborg_idle.png";
 

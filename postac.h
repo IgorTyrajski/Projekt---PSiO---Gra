@@ -67,8 +67,6 @@ protected:
     float x_speed; //do ustawienia
     float y_speed;
     int v_ratio; //przelicznik predkosci
-
-
     bool is_moving=false;
 };
 #endif // POSTAC_H

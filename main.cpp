@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <memory>
+#include <iostream>
 
 #include "funkcje.h"
 #include "postac.h"
@@ -80,14 +81,16 @@ int main()
     //to_draw.push_back(fog_of_war.get());
 
     Shader fog_of_war;
-    fog_of_war.loadFromFile("assets\\bohater\\mask.frag", Shader::Fragment);
-
+    if (!fog_of_war.loadFromFile("assets\\bohater\\mask.frag", Shader::Fragment)) {
+        cout << "Nie udalo sie zaladowac shadera!" << endl;
+    }
     fog_of_war.setUniform("lightCenter", Glsl::Vec2(hero->getPosition()));
     fog_of_war.setUniform("lightRadius", 300.f);
+    fog_of_war.setUniform("resolution", Glsl::Vec2(window.getSize()));
+
     float aktualny_promien=300.f;
     RectangleShape mask(Vector2f(windowSize.x, windowSize.y));
     mask.setFillColor(Color::Black);
-    window.draw(mask, &fog_of_war);
     ////////////////////////////////////////////////
     int frame_count=0, frame_count_h=0; //frame counter bohatera
 

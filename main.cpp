@@ -16,6 +16,7 @@ using namespace sf;
 int main()
 {
     vector<Sprite*> to_draw;
+    vector<Postac*> postacie;
     Clock clock;
     ////////window///////////////
     VideoMode desktop = VideoMode::getDesktopMode();
@@ -57,7 +58,7 @@ int main()
     hero->set_y_speed(120.f);
     hero->reset_origin_point();
     set_proper_scale(hero,Scale_ratioX,Scale_ratioY);
-    to_draw.push_back(hero.get());
+    postacie.push_back(hero.get());
     ////////////////////////////////////////////////
     ///////////sciany///////////////////////
     Image image_sciany;
@@ -72,7 +73,7 @@ int main()
     reset_origin_point(sciany);
     to_draw.push_back(sciany.get());
     ///////////////////////////////////
-    int frame_count=0;
+    int frame_count=0, frame_count_h=0; //frame counter bohatera
 
     while (window.isOpen()) {
         Time elapsed=clock.restart();
@@ -84,10 +85,17 @@ int main()
         }
         window.clear(Color::Black);
         ////////////ruszanie///////////
-        move_hero(hero,elapsed,Scale_ratioX,Scale_ratioY);
+        move_hero(hero,elapsed,Scale_ratioX,Scale_ratioY,image_sciany);
+        if (frame_count%10+1>9){
+            frame_count_h++;
+        }
+        hero->change_frame(frame_count_h);
         ///////////////////////////////
         ///////////DRAWING/////////////
         for (auto &d : to_draw){
+            window.draw(*d);
+        }
+        for (auto &d : postacie){
             window.draw(*d);
         }
         window.display();

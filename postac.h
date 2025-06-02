@@ -19,22 +19,27 @@ public:
         const float t=elapsed.asSeconds();
         if (dir==direction::none){
             move (0.0,0.0);
+            is_moving=false;
         }
         if (dir==direction::left){
             x_speed=abs(x_speed)*(-1);
             move(x_speed*t*v_ratio*x_ratio,0);
+            is_moving=true;
         }
         else if (dir==direction::right){
             x_speed=abs(x_speed);
             move(x_speed*t*v_ratio*x_ratio,0);
+            is_moving=true;
         }
         else if (dir==direction::up){
             y_speed=abs(y_speed)*(-1);
             move(0,y_speed*t*v_ratio*y_ratio);
+            is_moving=true;
         }
         else if (dir==direction::down){
             y_speed=abs(y_speed);
             move(0,y_speed*t*v_ratio*y_ratio);
+            is_moving=true;
         }
     }
     void turn_left(){

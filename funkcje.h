@@ -23,24 +23,31 @@ void reset_origin_point(unique_ptr<T> &s){
     s->setOrigin(s->getLocalBounds().width / 2, s->getLocalBounds().height / 2);
 }
 
-bool is_colliding_with_wall(const Image &image_sciany, unique_ptr<bohater> &hero,const direction &dir){
+bool is_colliding_with_wall(const Image &image_sciany, unique_ptr<bohater> &hero, const direction &dir, float scaleX, float scaleY){
     float localposx;
     float localposy;
-    if (dir==direction::up){
-        localposx=hero->getPosition().x;
-        localposy=hero->getPosition().y-(hero->getGlobalBounds().width/1.8f);
+
+    // Pobierz oryginalną pozycję bohatera
+    float posX = hero->getPosition().x;
+    float posY = hero->getPosition().y;
+    float width = hero->getGlobalBounds().width;
+    float height = hero->getGlobalBounds().height;
+
+    if (dir == direction::up) {
+        localposx = posX * scaleX;
+        localposy = (posY - (width / 1.8f)) * scaleY;
     }
-    if (dir==direction::down){
-        localposx=hero->getPosition().x;
-        localposy=hero->getPosition().y+(hero->getGlobalBounds().width);
+    else if (dir == direction::down) {
+        localposx = posX * scaleX;
+        localposy = (posY + width) * scaleY;
     }
-    if (dir==direction::left){
-        localposx=hero->getPosition().x-(hero->getGlobalBounds().width/2.f);
-        localposy=hero->getPosition().y;
+    else if (dir == direction::left) {
+        localposx = (posX - (width / 2.f)) * scaleX;
+        localposy = posY * scaleY;
     }
-    if (dir==direction::right){
-        localposx=hero->getPosition().x+(hero->getGlobalBounds().width/2.f);
-        localposy=hero->getPosition().y;
+    else if (dir == direction::right) {
+        localposx = (posX + (width / 2.f)) * scaleX;
+        localposy = posY * scaleY;
     }
 
 
@@ -60,7 +67,7 @@ void move_hero(unique_ptr<bohater> &hero,Time &elapsed, const float &Scale_ratio
     if (a){
         if (!d){
             hero->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);
-            if (is_colliding_with_wall(image,hero,direction::left)){
+            if (is_colliding_with_wall(image,hero,direction::left,Scale_ratioX, Scale_ratioY)){
                 hero->animate(elapsed,direction::right,Scale_ratioX,Scale_ratioY);
             }
             hero->turn_left();
@@ -70,7 +77,7 @@ void move_hero(unique_ptr<bohater> &hero,Time &elapsed, const float &Scale_ratio
     if (d){
         if (!a){
             hero->animate(elapsed,direction::right,Scale_ratioX,Scale_ratioY);
-            if (is_colliding_with_wall(image,hero,direction::right)){
+            if (is_colliding_with_wall(image,hero,direction::right,Scale_ratioX, Scale_ratioY)){
                 hero->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);
             }
             hero->turn_right();
@@ -79,7 +86,7 @@ void move_hero(unique_ptr<bohater> &hero,Time &elapsed, const float &Scale_ratio
     if (w){
         if (!s){
             hero->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);
-            if (is_colliding_with_wall(image,hero,direction::up)){
+            if (is_colliding_with_wall(image,hero,direction::up,Scale_ratioX, Scale_ratioY)){
                 hero->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
             }
         }
@@ -87,7 +94,7 @@ void move_hero(unique_ptr<bohater> &hero,Time &elapsed, const float &Scale_ratio
     if (s){
         if (!w){
             hero->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
-            if (is_colliding_with_wall(image,hero,direction::down)){
+            if (is_colliding_with_wall(image,hero,direction::down,Scale_ratioX, Scale_ratioY)){
                 hero->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);
             }
         }

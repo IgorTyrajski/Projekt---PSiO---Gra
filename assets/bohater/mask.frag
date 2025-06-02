@@ -1,12 +1,15 @@
 uniform vec2 lightCenter;
 uniform float lightRadius;
+uniform vec2 resolution;
 
 void main()
 {
-    vec2 pixelPos = gl_FragCoord.xy;
-    float dist = distance(pixelPos, lightCenter);
+    // Przekształcenie współrzędnych z GLSL (0,0 dolny lewy) na SFML (0,0 górny lewy)
+    vec2 pos = vec2(gl_FragCoord.x, resolution.y - gl_FragCoord.y);
 
-    // Zamiast przyciemniać środek, przyciemniamy na zewnątrz
-    float alpha = smoothstep(lightRadius * 0.8, lightRadius, dist);
-    gl_FragColor = vec4(0.0, 0.0, 0.0, alpha); // Czarne z przezroczystością
+    float dist = distance(pos, lightCenter);
+    float brightness = 1.0 - smoothstep(0.0, lightRadius, dist);
+    vec4 darkness = vec4(0.0, 0.0, 0.0, 1.0);
+    
+    gl_FragColor = mix(darkness, vec4(0.0), brightness);
 }

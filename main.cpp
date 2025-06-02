@@ -122,4 +122,6 @@ int main()
         window.display();
         frame_count++;
     }
+
+    return 0;
 }

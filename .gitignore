@@ -18,6 +18,7 @@ CMakeLists.txt.user*
 *.idx
 *.pro
 *.layout
+*.cbp
 *.depend
 *.layout.save
 *.cbTemp

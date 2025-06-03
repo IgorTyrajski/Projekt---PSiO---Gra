@@ -20,15 +20,20 @@ int main()
     Clock clock;
     ////////window///////////////
     VideoMode desktop = VideoMode::getDesktopMode();
+    RenderWindow window(desktop, "My window", Style::Fullscreen);
+
+    // Po utworzeniu okna pobierz jego rozmiar:
+    Vector2u windowSize = window.getSize();
+
     const float baseX = 1920.f;
     const float baseY = 1080.f;
-    const float window_X=desktop.width;
-    const float window_Y=desktop.height;
-    const float Scale_ratioX=window_X/baseX;
-    const float Scale_ratioY=window_Y/baseY;
-    RenderWindow window(desktop, "My window",Style::Fullscreen); //
+    const float window_X = static_cast<float>(windowSize.x);
+    const float window_Y = static_cast<float>(windowSize.y);
+
+    const float Scale_ratioX = window_X / baseX;
+    const float Scale_ratioY = window_Y / baseY;
     window.setFramerateLimit(60);
-    Vector2u windowSize = window.getSize();
+    cout << "Okno: " << window_X << " x " << window_Y << endl;
     //////////////// background/////////////////////////////
     unique_ptr<Sprite> background = make_unique<Sprite>();
     Texture& bgTexture = TextureManager::getInstance().getTexture("assets\\mapa\\tlo.png");
@@ -64,7 +69,7 @@ int main()
     ///////////////////////////////////
     ////////////////// bohater /////////////////////narazie orientacyjnie
     unique_ptr<bohater>hero = make_unique<bohater>();
-    hero->setPosition(300,windowSize.y/2);
+    hero->setPosition(windowSize.x/6.f,windowSize.y/2.f);
     hero->setScale(1.2f,1.2f);
     hero->set_v_ratio(1.f);
     hero->set_x_speed(120.f);
@@ -105,7 +110,8 @@ int main()
         window.clear(Color::Black);
         ////////////ruszanie///////////
 
-        move_hero(hero,elapsed,Scale_ratioX,Scale_ratioY,image_sciany);
+        move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany);
+
         //fog_of_war->setPosition(hero->getPosition());
         fog_of_war.setUniform("lightCenter", hero->getPosition());
         fog_of_war.setUniform("lightRadius", aktualny_promien);
@@ -122,6 +128,8 @@ int main()
             window.draw(*d);
         }
         window.draw(mask, &fog_of_war);
+
+
         window.display();
         frame_count++;
     }

@@ -5,33 +5,54 @@
 #include <SFML/Graphics.hpp>
 #include "postac.h"
 #include "TextureManager.h"
+
 using namespace std;
 using namespace sf;
 
 class potwor : public Postac {
 public:
-    potwor(){};
-    void change_frame(int &frame_count) {
+    potwor(){
+        idle1=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_idle_1.png");
+        idle2=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_idle_2.png");
+        run1=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_1.png");
+        run2=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_2.png");
+        run3=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_3.png");
+        run4=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_4.png");
+        run5=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_5.png");
+        is_moving=false;
+    };
+    // W klasie potwor
+    void set_proper_scale(float x_ratio, float y_ratio) {
+        float x = getScale().x;
+        float y = getScale().y;
+        setScale(x * x_ratio, y * y_ratio);
+    }
+
+    void change_frame(int &frame_count, float scaleX, float scaleY) {
         if (is_moving) {
             int fr = frame_count % 5;
             switch (fr) {
-                case 0: setTexture(TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_1.png")); break;
-                case 1: setTexture(TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_2.png")); break;
-                case 2: setTexture(TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_3.png")); break;
-                case 3: setTexture(TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_4.png")); break;
-                case 4: {setTexture(TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_5.png")); frame_count = 0; break;}
+            case 0: setTexture(run1); break;
+            case 1: setTexture(run2); break;
+            case 2: setTexture(run3); break;
+            case 3: setTexture(run4); break;
+            case 4: setTexture(run5); frame_count = 0; break;
             }
         } else {
-            int fr = frame_count % 2;
-            switch (fr){
-                case 0: setTexture(TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_idle_1.png")); break;
-                case 1: {setTexture(TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_idle_1.png")); frame_count = 0; break;}
+            int fr = frame_count % 5 + 1;
+            switch (fr) {
+            case 3: setTexture(idle1); break;
+            case 5: setTexture(idle2); frame_count = 0; break;
             }
         }
         reset_origin_point();
+        setScale(1.f, 1.f);
+        this->set_proper_scale(scaleX, scaleY);
     }
 
+
 private:
-    const string text_path_idle = "assets\\potwor\\scifi_alien_idle_1.png";
+    Texture idle1, idle2;
+    Texture run1, run2,run3,run4,run5;
 };
 #endif // POTWOR_H

@@ -15,7 +15,7 @@ using namespace sf;
 
 int main()
 {
-    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
 
     vector<Sprite*> to_draw;
     vector<Postac*> postacie;
@@ -35,7 +35,7 @@ int main()
     const float Scale_ratioX = window_X / baseX;
     const float Scale_ratioY = window_Y / baseY;
     window.setFramerateLimit(60);
-    if (!develop_mode) {cout << "Okno: " << window_X << " x " << window_Y << endl;}
+    if (develop_mode) {cout << "Okno: " << window_X << " x " << window_Y << endl;}
     //////////////// background/////////////////////////////
     unique_ptr<Sprite> background = make_unique<Sprite>();
     Texture& bgTexture = TextureManager::getInstance().getTexture("assets\\mapa\\tlo.png");

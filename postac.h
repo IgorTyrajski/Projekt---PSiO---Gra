@@ -51,7 +51,7 @@ public:
         setScale(abs(scale.x), scale.y);
     }
     void reset_origin_point(){
-        setOrigin(getLocalBounds().width / 2, getLocalBounds().height / 2);
+        setOrigin(getLocalBounds().width / 2.f, getLocalBounds().height / 2.f);
     }
     void set_x_speed(const float &xs){
         x_speed=xs;

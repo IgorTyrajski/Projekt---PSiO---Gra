@@ -9,6 +9,7 @@
 #include "bohater.h"
 #include "obiekt.h"
 #include "potwor.h"
+#include "dzwiek.h"
 
 using namespace std;
 using namespace sf;

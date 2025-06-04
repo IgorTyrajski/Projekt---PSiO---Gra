@@ -70,11 +70,17 @@ bool is_colliding_with_wall(const sf::Image &image_sciany,
 
 void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
                const float &Scale_ratioX, const float &Scale_ratioY,
-               const Image &image){
+               const Image &image, float &run_ratio){
     bool a = Keyboard::isKeyPressed(Keyboard::A);
     bool d = Keyboard::isKeyPressed(Keyboard::D);
     bool w = Keyboard::isKeyPressed(Keyboard::W);
     bool s = Keyboard::isKeyPressed(Keyboard::S);
+    bool shift = Keyboard::isKeyPressed(Keyboard::LShift);
+
+
+    if (shift) {hero->set_v_ratio(0.6f); hero->set_is_running(false); run_ratio=1.3f;}
+    else {hero->set_v_ratio(1.f); hero->set_is_running(true); run_ratio=1.f;}
+
     if (a){
         if (!d){
             hero->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);

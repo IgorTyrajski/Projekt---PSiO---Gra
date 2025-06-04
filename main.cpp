@@ -9,7 +9,7 @@
 #include "bohater.h"
 #include "obiekt.h"
 #include "potwor.h"
-#include "dzwiek.h"
+//#include "dzwiek.h"
 
 using namespace std;
 using namespace sf;
@@ -108,8 +108,8 @@ int main()
     RectangleShape mask(Vector2f(windowSize.x, windowSize.y));
     mask.setFillColor(Color::Black);
     ////////////////////////////////////////////////
-    int frame_count1=0, frame_count2=0, frame_count_h=0, frame_count_m=0; //frame counter bohatera
-
+    int frame_count1=0, frame_count2=0, frame_count_h=0, frame_count_m=0; //frame counter bohatera i potwora
+    float run_ratio=1.f; //uzywany do zmiany predkosci zmiany klatek animacji
     while (window.isOpen()) {
         Time elapsed=clock.restart();
         Event event;
@@ -121,17 +121,19 @@ int main()
         window.clear(Color::Black);
         ////////////ruszanie///////////
 
-        move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany);
+        move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany, run_ratio);
         //fog_of_war->setPosition(hero->getPosition());
         fog_of_war.setUniform("lightCenter", hero->getPosition());
         fog_of_war.setUniform("lightRadius", aktualny_promien);
 
-        if (frame_count1%10+1==10){
+        int kl_h=10*run_ratio;
+        if ((frame_count1%kl_h)+1==kl_h){
             frame_count_h++;
         }
         hero->change_frame(frame_count_h);
 
-        if (frame_count2%8+1==8){
+        int kl_m=8;
+        if ((frame_count2%kl_m)+1==kl_m){
             frame_count_m++;
         }
         monster->change_frame(frame_count_m, Scale_ratioX, Scale_ratioY);

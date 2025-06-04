@@ -16,10 +16,12 @@ using namespace sf;
 
 int main()
 {
-    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+
+    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
 
     vector<Sprite*> to_draw;
     vector<Postac*> postacie;
+    vector <pair<unique_ptr<CircleShape>,Time>> promienie_sluchu; //tu sa przechowywane dzwieki tupniecia bohatera
     Clock clock;
     ////////window///////////////
     VideoMode desktop = VideoMode::getDesktopMode();
@@ -88,6 +90,8 @@ int main()
     hero->reset_origin_point();
     set_proper_scale(hero,Scale_ratioX,Scale_ratioY);
     postacie.push_back(hero.get());
+    ///////////////////////////////////////
+    /////////////////////////////////////////////////////
     /////zasłona by bohater widział tylko to co ma widzieć/////
     //unique_ptr<Sprite> fog_of_war = make_unique<Sprite>();
     //Texture& fowTexture = TextureManager::getInstance().getTexture("assets\\bohater\\fog_of_war.png");
@@ -121,7 +125,7 @@ int main()
         window.clear(Color::Black);
         ////////////ruszanie///////////
 
-        move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany, run_ratio);
+        move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany, run_ratio, promienie_sluchu);
         //fog_of_war->setPosition(hero->getPosition());
         fog_of_war.setUniform("lightCenter", hero->getPosition());
         fog_of_war.setUniform("lightRadius", aktualny_promien);
@@ -129,14 +133,16 @@ int main()
         int kl_h=10*run_ratio;
         if ((frame_count1%kl_h)+1==kl_h){
             frame_count_h++;
+            hero->change_frame(frame_count_h);
         }
-        hero->change_frame(frame_count_h);
+
 
         int kl_m=8;
         if ((frame_count2%kl_m)+1==kl_m){
             frame_count_m++;
+            monster->change_frame(frame_count_m, Scale_ratioX, Scale_ratioY);
         }
-        monster->change_frame(frame_count_m, Scale_ratioX, Scale_ratioY);
+
         ///////////////////////////////
         ///////////DRAWING/////////////
         for (auto &d : to_draw){
@@ -147,7 +153,38 @@ int main()
         }
         if (!develop_mode){
             window.draw(mask, &fog_of_war);
+
         }
+        if (develop_mode) {
+            const float max_duration = 2.0f; // maksymalny czas życia dźwięku w sekundach
+            int index = 0;
+
+            for (auto it = promienie_sluchu.begin(); it != promienie_sluchu.end(); ) {
+                it->second -= elapsed;
+
+                if (it->second > seconds(0)) {
+                    if (index % 6 == 0) {
+                        float remaining_time = it->second.asSeconds();
+                        float alpha_ratio = std::clamp(remaining_time / max_duration, 0.f, 1.f);
+                        Uint8 alpha = static_cast<Uint8>(255 * alpha_ratio);
+
+                        it->first->setFillColor(Color(255, 0, 0, alpha));
+                        //if (elapsed>seconds(0.3)){
+                            it->first->setRadius(it->first->getRadius() + 10.f);
+                            reset_origin_point(it->first);
+                        //}
+
+                        window.draw(*it->first);
+                    }
+                    ++index;
+                    ++it;
+                } else {
+                    it = promienie_sluchu.erase(it);
+                }
+            }
+        }
+
+
 
 
 

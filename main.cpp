@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <iostream>
+#include <algorithm>
 
 #include "funkcje.h"
 #include "postac.h"
@@ -10,6 +11,8 @@
 #include "obiekt.h"
 #include "potwor.h"
 //#include "dzwiek.h"
+#include "Struct_promien_slyszenia.h"
+
 
 using namespace std;
 using namespace sf;
@@ -21,7 +24,8 @@ int main()
 
     vector<Sprite*> to_draw;
     vector<Postac*> postacie;
-    vector <pair<unique_ptr<CircleShape>,Time>> promienie_sluchu; //tu sa przechowywane dzwieki tupniecia bohatera
+    vector <unique_ptr<promien_slysz>> promienie_sluchu; //tu sa przechowywane dzwieki tupniecia bohatera
+
     Clock clock;
     ////////window///////////////
     VideoMode desktop = VideoMode::getDesktopMode();
@@ -114,8 +118,11 @@ int main()
     ////////////////////////////////////////////////
     int frame_count1=0, frame_count2=0, frame_count_h=0, frame_count_m=0; //frame counter bohatera i potwora
     float run_ratio=1.f; //uzywany do zmiany predkosci zmiany klatek animacji
+    Time czas_do_nowego_promienia = Time::Zero;
     while (window.isOpen()) {
         Time elapsed=clock.restart();
+
+
         Event event;
         while (window.pollEvent(event)) {
 
@@ -125,7 +132,7 @@ int main()
         window.clear(Color::Black);
         ////////////ruszanie///////////
 
-        move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany, run_ratio, promienie_sluchu);
+        move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany, run_ratio, promienie_sluchu,czas_do_nowego_promienia);
         //fog_of_war->setPosition(hero->getPosition());
         fog_of_war.setUniform("lightCenter", hero->getPosition());
         fog_of_war.setUniform("lightRadius", aktualny_promien);
@@ -156,41 +163,27 @@ int main()
 
         }
         if (develop_mode) {
-            const float max_duration = 2.0f; // maksymalny czas życia dźwięku w sekundach
-            int index = 0;
-
-            for (auto it = promienie_sluchu.begin(); it != promienie_sluchu.end(); ) {
-                it->second -= elapsed;
-
-                if (it->second > seconds(0)) {
-                    if (index % 6 == 0) {
-                        float remaining_time = it->second.asSeconds();
-                        float alpha_ratio = std::clamp(remaining_time / max_duration, 0.f, 1.f);
-                        Uint8 alpha = static_cast<Uint8>(255 * alpha_ratio);
-
-                        it->first->setFillColor(Color(255, 0, 0, alpha));
-                        //if (elapsed>seconds(0.3)){
-                            it->first->setRadius(it->first->getRadius() + 10.f);
-                            reset_origin_point(it->first);
-                        //}
-
-                        window.draw(*it->first);
-                    }
-                    ++index;
-                    ++it;
-                } else {
-                    it = promienie_sluchu.erase(it);
+            for (auto& p : promienie_sluchu) {
+                if (p->get_pozostaly_czas() >= milliseconds(0)) {
+                    p->set_pozostaly_czas(p->get_pozostaly_czas() - elapsed);
+                    p->setRadius(p->getRadius() + 5.f);
+                    reset_origin_point(p);
+                    window.draw(*p);
                 }
             }
+
+            promienie_sluchu.erase(remove_if(
+                promienie_sluchu.begin(), promienie_sluchu.end(), [](const unique_ptr<promien_slysz>& p) {
+                    return p->get_pozostaly_czas() < seconds(0);}), promienie_sluchu.end());
         }
-
-
 
 
 
         window.display();
         frame_count1++;
         frame_count2++;
+        czas_do_nowego_promienia -= elapsed;
+
     }
 
     return 0;

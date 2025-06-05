@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include "postac.h"
 #include "bohater.h"
+#include "Struct_promien_slyszenia.h"
 #include <memory>
 #include <vector>
 
@@ -72,7 +73,7 @@ bool is_colliding_with_wall(const sf::Image &image_sciany,
 void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
                const float &Scale_ratioX, const float &Scale_ratioY,
                const Image &image, float &run_ratio,
-                vector <pair<unique_ptr<CircleShape>,Time>> &promienie_sluchu){
+                vector <unique_ptr<promien_slysz>> &promienie_sluchu, Time &czas_do_nowego_promienia){
     bool a = Keyboard::isKeyPressed(Keyboard::A);
     bool d = Keyboard::isKeyPressed(Keyboard::D);
     bool w = Keyboard::isKeyPressed(Keyboard::W);
@@ -123,19 +124,20 @@ void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
     }
     if (!a && !d && !s && !w){
         hero->animate(elapsed,direction::none,Scale_ratioX,Scale_ratioY);
+        hero->set_is_running(false);
     }
-    if (hero->get_is_running()){
-        pair<unique_ptr<CircleShape>,Time> para;
-        unique_ptr<CircleShape> r_sluchu = make_unique<CircleShape>();
-        r_sluchu->setRadius(1.f);
-        reset_origin_point(r_sluchu);
-        r_sluchu->setPosition(hero->getPosition().x*Scale_ratioX,hero->getPosition().y*Scale_ratioY);
-        r_sluchu->setFillColor(Color(0,0,0,0));
-        r_sluchu->setOutlineThickness(10.f);
-        r_sluchu->setOutlineColor(Color(250,0,0));
-
-        promienie_sluchu.emplace_back(std::move(r_sluchu), sf::seconds(0.5f));
-
+    if (hero->get_is_running() && czas_do_nowego_promienia <= Time::Zero){
+        if (promienie_sluchu.empty()){
+            unique_ptr<promien_slysz> r_sluchu = make_unique<promien_slysz>();
+            r_sluchu->setRadius(1.f);
+            reset_origin_point(r_sluchu);
+            r_sluchu->setPosition(hero->getPosition().x,hero->getPosition().y);
+            r_sluchu->setFillColor(Color(0,0,0,0));
+            r_sluchu->setOutlineThickness(10.f);
+            r_sluchu->setOutlineColor(Color(250,0,0));
+            promienie_sluchu.emplace_back(std::move(r_sluchu));
+            czas_do_nowego_promienia = seconds(1.f);
+        }
     }
 }
 #endif // FUNKCJE_H

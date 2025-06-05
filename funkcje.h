@@ -7,6 +7,7 @@
 #include "Struct_promien_slyszenia.h"
 #include <memory>
 #include <vector>
+#include <cmath>
 
 using namespace std;
 using namespace sf;
@@ -139,5 +140,13 @@ void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
             czas_do_nowego_promienia = seconds(1.f);
         }
     }
+}
+template<typename T>
+float distance_between(const unique_ptr<T> &obiekt1, const unique_ptr<T> &obiekt2 ){
+    Vector2f poz1=obiekt1->getPosition();
+    Vector2f poz2=obiekt2->getPosition();
+    float dis=sqrt(pow((poz2.x-poz1.x),2) + pow(poz2.y-poz1.y,2));
+
+    return dis;
 }
 #endif // FUNKCJE_H

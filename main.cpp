@@ -5,6 +5,7 @@
 #include <iostream>
 #include <algorithm>
 
+#include "move_monster.h"
 #include "funkcje.h"
 #include "postac.h"
 #include "bohater.h"
@@ -12,6 +13,7 @@
 #include "potwor.h"
 //#include "dzwiek.h"
 #include "Struct_promien_slyszenia.h"
+
 
 
 using namespace std;
@@ -79,7 +81,10 @@ int main()
     ///////////Potwor//////////////////
     unique_ptr<potwor>monster = make_unique<potwor>();
     monster->setPosition(windowSize.x/2.f,windowSize.y/2.f);
-    monster->setScale(1.f,1.f);
+    monster->set_v_ratio(1.f);
+    monster->set_x_speed(100.f);
+    monster->set_y_speed(100.f);
+    monster->setScale(0.7f,0.7f);
     monster->reset_origin_point();
     set_proper_scale(monster,Scale_ratioX,Scale_ratioY);
     postacie.push_back(monster.get());
@@ -143,11 +148,11 @@ int main()
             hero->change_frame(frame_count_h);
         }
 
-
+        move_monster(monster,hero,elapsed,Scale_ratioX,Scale_ratioY,image_sciany,run_ratio);
         int kl_m=8;
         if ((frame_count2%kl_m)+1==kl_m){
             frame_count_m++;
-            monster->change_frame(frame_count_m, Scale_ratioX, Scale_ratioY);
+            //monster->change_frame(frame_count_m, Scale_ratioX, Scale_ratioY);
         }
 
         ///////////////////////////////

@@ -20,6 +20,8 @@ public:
         run4=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_4.png");
         run5=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_5.png");
         is_moving=false;
+        setTexture(idle1);
+        reset_origin_point();
     };
     // W klasie potwor
     void set_proper_scale(float x_ratio, float y_ratio) {
@@ -45,13 +47,14 @@ public:
             case 5: setTexture(idle2); frame_count = 0; break;
             }
         }
-        reset_origin_point();
-        setScale(1.f, 1.f);
+        setScale(1,1);
         this->set_proper_scale(scaleX, scaleY);
+        reset_origin_point();
     }
 
-
 private:
+    bool is_left=false, is_right=false;
+
     Texture idle1, idle2;
     Texture run1, run2,run3,run4,run5;
 };

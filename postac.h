@@ -9,6 +9,7 @@ using namespace std;
 using namespace sf;
 
 enum direction {none, left, right, up, down};
+enum direction_adv {left_up, right_up, left_down, right_down};
 
 class Postac : public Sprite{
 public:

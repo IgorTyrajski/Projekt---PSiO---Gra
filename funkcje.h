@@ -128,17 +128,15 @@ void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
         hero->set_is_running(false);
     }
     if (hero->get_is_running() && czas_do_nowego_promienia <= Time::Zero){
-        if (promienie_sluchu.empty()){
-            unique_ptr<promien_slysz> r_sluchu = make_unique<promien_slysz>();
-            r_sluchu->setRadius(1.f);
-            reset_origin_point(r_sluchu);
-            r_sluchu->setPosition(hero->getPosition().x,hero->getPosition().y);
-            r_sluchu->setFillColor(Color(0,0,0,0));
-            r_sluchu->setOutlineThickness(10.f);
-            r_sluchu->setOutlineColor(Color(250,0,0));
-            promienie_sluchu.emplace_back(std::move(r_sluchu));
-            czas_do_nowego_promienia = seconds(1.f);
-        }
+        unique_ptr<promien_slysz> r_sluchu = make_unique<promien_slysz>();
+        r_sluchu->setRadius(1.f);
+        reset_origin_point(r_sluchu);
+        r_sluchu->setPosition(hero->getPosition().x,hero->getPosition().y);
+        r_sluchu->setFillColor(Color(0,0,0,0));
+        r_sluchu->setOutlineThickness(10.f);
+        r_sluchu->setOutlineColor(Color(250,0,0));
+        promienie_sluchu.emplace_back(std::move(r_sluchu));
+        czas_do_nowego_promienia = seconds(0.7f);
     }
 }
 template<typename T>

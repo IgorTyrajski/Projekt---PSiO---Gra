@@ -26,20 +26,21 @@ void reset_origin_point(unique_ptr<T> &s){
     s->setOrigin(s->getLocalBounds().width / 2.f, s->getLocalBounds().height / 2.f);
 }
 
+template<typename T>
 bool is_colliding_with_wall(const sf::Image &image_sciany,
-                            std::unique_ptr<bohater> &hero,
+                            std::unique_ptr<T> &obj,
                             const direction &dir, float scaleX, float scaleY)
  {
     // Współrzędne bohatera przeskalowane do bazowej rozdzielczości (np. 1920x1080)
-    float posX = hero->getPosition().x / scaleX;
-    float posY = hero->getPosition().y / scaleY;
+    float posX = obj->getPosition().x / scaleX;
+    float posY = obj->getPosition().y / scaleY;
 
     float offsetX = 0.f;
     float offsetY = 0.f;
 
     // Rozmiar sprite'a bohatera również cofnięty do bazowej skali
-    float width  = hero->getGlobalBounds().width / scaleX;
-    float height = hero->getGlobalBounds().height / scaleY;
+    float width  = obj->getGlobalBounds().width / scaleX;
+    float height = obj->getGlobalBounds().height / scaleY;
 
     // Wyznacz przesunięcie kierunkowe względem środka postaci
     if (dir == direction::up)

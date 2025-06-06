@@ -77,6 +77,11 @@ int main()
     set_proper_scale(sciany, Scale_ratioX,Scale_ratioY);
     reset_origin_point(sciany);
     to_draw.push_back(sciany.get());
+
+
+    vector<floor_square*> floor_tile=create_floor(window,image_sciany,Scale_ratioX,Scale_ratioY);
+    floor_square* hero_pos;
+    floor_square* monster_pos;
     ///////////////////////////////////
     ///////////Potwor//////////////////
     unique_ptr<potwor>monster = make_unique<potwor>();
@@ -130,7 +135,6 @@ int main()
 
         Event event;
         while (window.pollEvent(event)) {
-
             if (event.type == Event::Closed)
                 window.close();
         }
@@ -148,13 +152,33 @@ int main()
             hero->change_frame(frame_count_h);
         }
 
-        move_monster(monster,hero,elapsed,Scale_ratioX,Scale_ratioY,image_sciany,run_ratio);
+        //move_monster(monster,hero,elapsed,Scale_ratioX,Scale_ratioY,image_sciany,run_ratio);
+
         int kl_m=8;
         if ((frame_count2%kl_m)+1==kl_m){
             frame_count_m++;
             //monster->change_frame(frame_count_m, Scale_ratioX, Scale_ratioY);
         }
 
+        for (auto &t : floor_tile){
+            if (t->get_is_wall()) {
+                t->setFillColor(Color(255, 0, 0, 200));  // czerwony
+            } else {
+                t->setFillColor(Color(200, 200, 200, 128));  // szary
+            }
+
+            if (t->getGlobalBounds().contains(hero->getPosition())) {
+                hero_pos = t;
+            }
+            if (t->getGlobalBounds().contains(monster->getPosition())) {
+                monster_pos = t;
+            }
+        }
+
+        for (auto &tile : floor_tile) {
+            tile->reset_astar_state();
+        }
+        create_path(floor_tile, hero_pos,monster_pos);
         ///////////////////////////////
         ///////////DRAWING/////////////
         for (auto &d : to_draw){
@@ -180,9 +204,15 @@ int main()
             promienie_sluchu.erase(remove_if(
                 promienie_sluchu.begin(), promienie_sluchu.end(), [](const unique_ptr<promien_slysz>& p) {
                     return p->get_pozostaly_czas() < seconds(0);}), promienie_sluchu.end());
+
+            for (auto &t : floor_tile){
+                window.draw(*t);
+            }
+            hero_pos->setFillColor(Color(255, 255, 0, 128));
+            window.draw(*hero_pos);
+            monster_pos->setFillColor(Color(0, 255, 0, 128));
+            window.draw(*monster_pos);
         }
-
-
 
         window.display();
         frame_count1++;
@@ -190,6 +220,10 @@ int main()
         czas_do_nowego_promienia -= elapsed;
 
     }
-
+    for (floor_square* ptr : floor_tile) {
+        delete ptr;
+    }
+    delete hero_pos;
+    delete monster_pos;
     return 0;
 }

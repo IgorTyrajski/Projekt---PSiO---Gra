@@ -22,7 +22,7 @@ using namespace sf;
 int main()
 {
 
-    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
 
     vector<Sprite*> to_draw;
     vector<Postac*> postacie;

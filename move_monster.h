@@ -106,7 +106,8 @@ bool is_wall(const sf::Image &image_sciany,
     return pixel.a > 0;
 }
 
-void create_path(const vector<floor_square*> &tales, floor_square* &hero_pos, floor_square* &monster_pos){
+vector<floor_square*> create_path(const vector<floor_square*> &tales, floor_square* &hero_pos, floor_square* &monster_pos){
+    vector<floor_square*> path;
     floor_square *current= monster_pos;
     monster_pos->set_local(0.0f);
     monster_pos->set_global(distance_between(monster_pos,hero_pos));
@@ -143,13 +144,16 @@ void create_path(const vector<floor_square*> &tales, floor_square* &hero_pos, fl
         while (f->get_parent()!=nullptr){
             f=f->get_parent();
             f->setFillColor(sf::Color(0, 0, 255, 128));
+            path.push_back(f);
         }
     }
+    return path;
+
 }
 
 vector<floor_square*> create_floor(const RenderWindow &window, const Image &image,
                                     const float &scaleX, const float &scaleY) {
-    const int baseTileSize = 10;
+    const int baseTileSize = 21;
     vector<floor_square*> result;
 
     const int maxX = image.getSize().x;
@@ -163,7 +167,7 @@ vector<floor_square*> create_floor(const RenderWindow &window, const Image &imag
             tile->setFillColor(Color(200, 200, 200, 128));
             tile->setOutlineColor(Color::Black);
             tile->setOutlineThickness(1);
-
+            reset_origin_point(tile);
             bool isWall = is_wall(image, tile, scaleX, scaleY);
             tile->set_is_wall(isWall);
             if (isWall) {
@@ -177,10 +181,9 @@ vector<floor_square*> create_floor(const RenderWindow &window, const Image &imag
             float dx = abs(result[i]->getPosition().x - result[j]->getPosition().x);
             float dy = abs(result[i]->getPosition().y - result[j]->getPosition().y);
 
-            // Sąsiad to taka kratka, która jest dokładnie jeden „krok” w osi X lub osi Y, ale nie oba jednocześnie
             const float eps = 0.001f;
-            if ((abs(dx - 10 * scaleX) < eps && dy < eps) ||
-                (abs(dy - 10 * scaleY) < eps && dx < eps))
+            if ((abs(dx - baseTileSize * scaleX) < eps && dy < eps) ||
+                (abs(dy - baseTileSize * scaleY) < eps && dx < eps))
 
                 result[i]->add_neighbour(result[j]);
             }
@@ -190,33 +193,7 @@ vector<floor_square*> create_floor(const RenderWindow &window, const Image &imag
 }
 
 
-void move_monster(unique_ptr<potwor> &monster, unique_ptr<bohater> &hero, Time &elapsed,
-               const float &Scale_ratioX, const float &Scale_ratioY, float &run_ratio){
 
-    Vector2f destination=hero->getPosition();
-    Vector2f m_position = monster->getPosition();
-
-    bool a = destination.x<m_position.x;
-    bool d = destination.x>m_position.x;
-    bool w = destination.y<m_position.y;
-    bool s = destination.y>m_position.y;
-
-    if (a){
-        monster->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);
-        monster->turn_left();
-    }
-    else if (d){
-        monster->animate(elapsed,direction::right,Scale_ratioX,Scale_ratioY);
-        monster->turn_right();
-    }
-    if (w){
-        monster->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);
-    }
-    else if (s){
-        monster->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
-    }
-
-}
 
 
 

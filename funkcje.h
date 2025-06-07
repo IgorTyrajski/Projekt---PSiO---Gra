@@ -25,6 +25,10 @@ template<typename T>
 void reset_origin_point(unique_ptr<T> &s){
     s->setOrigin(s->getLocalBounds().width / 2.f, s->getLocalBounds().height / 2.f);
 }
+template<typename T>
+void reset_origin_point(T* &s){
+    s->setOrigin(s->getLocalBounds().width / 2.f, s->getLocalBounds().height / 2.f);
+}
 
 template<typename T>
 bool is_colliding_with_wall(const sf::Image &image_sciany,

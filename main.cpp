@@ -5,11 +5,12 @@
 #include <iostream>
 #include <algorithm>
 
+
 #include "move_monster.h"
 #include "funkcje.h"
 #include "postac.h"
 #include "bohater.h"
-#include "obiekt.h"
+//#include "obiekt.h"
 #include "potwor.h"
 //#include "dzwiek.h"
 #include "Struct_promien_slyszenia.h"
@@ -22,7 +23,9 @@ using namespace sf;
 int main()
 {
 
-    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool liczenie_trasy=true; //tryb mega wydajności, jak na razie program oblicza trase w każdej klatce,
+    //ale końcowo to nie bedzie wymagane
 
     vector<Sprite*> to_draw;
     vector<Postac*> postacie;
@@ -80,8 +83,10 @@ int main()
 
 
     vector<floor_square*> floor_tile=create_floor(window,image_sciany,Scale_ratioX,Scale_ratioY);
-    floor_square* hero_pos;
-    floor_square* monster_pos;
+    floor_square* hero_pos=nullptr;
+    floor_square* monster_pos=nullptr;
+    vector<floor_square*> path;
+
     ///////////////////////////////////
     ///////////Potwor//////////////////
     unique_ptr<potwor>monster = make_unique<potwor>();
@@ -159,7 +164,8 @@ int main()
             frame_count_m++;
             //monster->change_frame(frame_count_m, Scale_ratioX, Scale_ratioY);
         }
-
+        hero_pos = nullptr;
+        monster_pos = nullptr;
         for (auto &t : floor_tile){
             if (t->get_is_wall()) {
                 t->setFillColor(Color(255, 0, 0, 200));  // czerwony
@@ -174,11 +180,13 @@ int main()
                 monster_pos = t;
             }
         }
+        if (liczenie_trasy) path=create_path(floor_tile,hero_pos,monster_pos);
+
 
         for (auto &tile : floor_tile) {
             tile->reset_astar_state();
         }
-        create_path(floor_tile, hero_pos,monster_pos);
+
         ///////////////////////////////
         ///////////DRAWING/////////////
         for (auto &d : to_draw){
@@ -204,14 +212,23 @@ int main()
             promienie_sluchu.erase(remove_if(
                 promienie_sluchu.begin(), promienie_sluchu.end(), [](const unique_ptr<promien_slysz>& p) {
                     return p->get_pozostaly_czas() < seconds(0);}), promienie_sluchu.end());
+            //////////rysowanie podglogi//////////
 
             for (auto &t : floor_tile){
                 window.draw(*t);
             }
-            hero_pos->setFillColor(Color(255, 255, 0, 128));
-            window.draw(*hero_pos);
-            monster_pos->setFillColor(Color(0, 255, 0, 128));
-            window.draw(*monster_pos);
+
+            for (auto &t : path) {
+                window.draw(*t);
+            }
+            if (hero_pos) {
+                hero_pos->setFillColor(Color(255, 255, 0, 128));
+                window.draw(*hero_pos);
+            }
+            if (monster_pos) {
+                monster_pos->setFillColor(Color(0, 255, 0, 128));
+                window.draw(*monster_pos);
+            }
         }
 
         window.display();

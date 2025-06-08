@@ -226,7 +226,7 @@ int main()
                 window.draw(*hero_pos);
             }
             if (monster_pos) {
-                monster_pos->setFillColor(Color(0, 255, 0, 128));
+                //monster_pos->setFillColor(Color(0, 255, 0, 128));
                 window.draw(*monster_pos);
             }
         }

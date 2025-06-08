@@ -192,7 +192,51 @@ vector<floor_square*> create_floor(const RenderWindow &window, const Image &imag
     return result;
 }
 
+void move_monster(unique_ptr<bohater> &monster,vector<floor_square*> path, Time &elapsed,
+               const Image &image,const float &Scale_ratioX, const float &Scale_ratioY,
+                float &run_ratio){
+    bool a = path[path.size()-2]->getPosition().x<monster->getPosition().x;
+    bool d = path[path.size()-2]->getPosition().x>monster->getPosition().x;
+    bool w = path[path.size()-2]->getPosition().y<monster->getPosition().y;
+    bool s = path[path.size()-2]->getPosition().y>monster->getPosition().y;
 
+    if (a){
+        monster->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);
+        if (is_colliding_with_wall(image, monster, direction::left, Scale_ratioX, Scale_ratioY))
+        {
+            monster->animate(elapsed,direction::right,Scale_ratioX,Scale_ratioY);
+        }
+        monster->turn_left();
+    }
+    if (d){
+        monster->animate(elapsed,direction::right,Scale_ratioX,Scale_ratioY);
+        if (is_colliding_with_wall(image, monster, direction::right, Scale_ratioX, Scale_ratioY))
+        {
+            monster->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);
+        }
+        monster->turn_right();
+    }
+    if (w){
+        if (!s){
+            monster->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);
+            if (is_colliding_with_wall(image, monster, direction::up, Scale_ratioX, Scale_ratioY))
+            {
+                monster->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
+            }
+        }
+    }
+    if (s){
+            monster->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
+            if (is_colliding_with_wall(image, monster, direction::down, Scale_ratioX, Scale_ratioY))
+            {
+                monster->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);
+            }
+    }
+    if (!a && !d && !s && !w){
+        monster->animate(elapsed,direction::none,Scale_ratioX,Scale_ratioY);
+        monster->set_is_running(false);
+    }
+}
 
 
 

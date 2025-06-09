@@ -14,6 +14,7 @@
 #include "potwor.h"
 //#include "dzwiek.h"
 #include "Struct_promien_slyszenia.h"
+#include "visibility_rays.h"
 
 
 
@@ -31,12 +32,12 @@ int main()
     vector<Postac*> postacie;
     vector <unique_ptr<promien_slysz>> promienie_sluchu; //tu sa przechowywane dzwieki tupniecia bohatera
 
+
     Clock clock;
     ////////window///////////////
     VideoMode desktop = VideoMode::getDesktopMode();
     RenderWindow window(desktop, "My window", Style::Fullscreen);
 
-    // Po utworzeniu okna pobierz jego rozmiar:
     Vector2u windowSize = window.getSize();
 
     const float baseX = 1920.f;
@@ -134,6 +135,10 @@ int main()
     int frame_count1=0, frame_count2=0, frame_count_h=0, frame_count_m=0; //frame counter bohatera i potwora
     float run_ratio=1.f; //uzywany do zmiany predkosci zmiany klatek animacji
     Time czas_do_nowego_promienia = Time::Zero;
+
+
+
+
     while (window.isOpen()) {
         Time elapsed=clock.restart();
 
@@ -177,7 +182,7 @@ int main()
 
 
         if (liczenie_trasy) path=create_path(floor_tile,hero_pos,monster_pos);
-        move_monster(monster,path,elapsed,image_sciany,Scale_ratioX,Scale_ratioY,run_ratio);
+        move_monster(monster,path,elapsed,Scale_ratioX,Scale_ratioY,run_ratio);
 
         int kl_m=8;
         if ((frame_count2%kl_m)+1==kl_m){

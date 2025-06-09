@@ -52,7 +52,7 @@ public:
         return local_score;
     }
     float get_global(){
-       return global_score;
+        return global_score;
     }
     void reset_astar_state() {
         was_visited = false;
@@ -81,17 +81,14 @@ float distance_between(T* &obiekt1, T* &obiekt2 ){
 }
 
 bool is_wall(const sf::Image &image_sciany,
-                             floor_square* &obj,
-                            float scaleX, float scaleY)
+             floor_square* &obj,
+             float scaleX, float scaleY)
 {
     float posX = obj->getPosition().x / scaleX;
     float posY = obj->getPosition().y / scaleY;
 
     float offsetX = 0.f;
     float offsetY = 0.f;
-
-    float width  = obj->getGlobalBounds().width / scaleX;
-    float height = obj->getGlobalBounds().height / scaleY;
 
     int pixelX = static_cast<int>(posX + offsetX);
     int pixelY = static_cast<int>(posY + offsetY);
@@ -151,7 +148,7 @@ vector<floor_square*> create_path(const vector<floor_square*> &tales, floor_squa
 
 }
 
-vector<floor_square*> create_floor(const RenderWindow &window, const Image &image,
+vector<floor_square*> create_floor(const Image &image,
                                     const float &scaleX, const float &scaleY) {
     const int baseTileSize = 21;
     vector<floor_square*> result;
@@ -185,57 +182,64 @@ vector<floor_square*> create_floor(const RenderWindow &window, const Image &imag
             if ((abs(dx - baseTileSize * scaleX) < eps && dy < eps) ||
                 (abs(dy - baseTileSize * scaleY) < eps && dx < eps))
 
-                result[i]->add_neighbour(result[j]);
-            }
-
+            result[i]->add_neighbour(result[j]);
         }
+
+    }
     return result;
 }
 
-void move_monster(unique_ptr<bohater> &monster,vector<floor_square*> path, Time &elapsed,
-               const Image &image,const float &Scale_ratioX, const float &Scale_ratioY,
-                float &run_ratio){
-    bool a = path[path.size()-2]->getPosition().x<monster->getPosition().x;
-    bool d = path[path.size()-2]->getPosition().x>monster->getPosition().x;
-    bool w = path[path.size()-2]->getPosition().y<monster->getPosition().y;
-    bool s = path[path.size()-2]->getPosition().y>monster->getPosition().y;
+void move_monster(unique_ptr<potwor> &monster,vector<floor_square*> path, Time &elapsed,
+                  const Image &image,const float &Scale_ratioX, const float &Scale_ratioY,
+                  float &run_ratio){
+    const float e = 5.f;
+    const float scaled_e_x = e * Scale_ratioX;
+    const float scaled_e_y = e * Scale_ratioY;
+
+    bool a = path[path.size()-2]->getPosition().x + scaled_e_x < monster->getPosition().x;
+    bool d = path[path.size()-2]->getPosition().x - scaled_e_x > monster->getPosition().x;
+    bool w = path[path.size()-2]->getPosition().y + scaled_e_y < monster->getPosition().y;
+    bool s = path[path.size()-2]->getPosition().y - scaled_e_y > monster->getPosition().y;
 
     if (a){
         monster->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);
         if (is_colliding_with_wall(image, monster, direction::left, Scale_ratioX, Scale_ratioY))
         {
-            monster->animate(elapsed,direction::right,Scale_ratioX,Scale_ratioY);
+            //monster->set_v_ratio(2.f);
+            //monster->animate(elapsed,direction::right,Scale_ratioX,Scale_ratioY);
+            //monster->set_v_ratio(0.5f);
         }
         monster->turn_left();
     }
-    if (d){
+    else if (d){
         monster->animate(elapsed,direction::right,Scale_ratioX,Scale_ratioY);
         if (is_colliding_with_wall(image, monster, direction::right, Scale_ratioX, Scale_ratioY))
         {
-            monster->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);
+            //monster->set_v_ratio(2.f);
+            //monster->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);
+            //monster->set_v_ratio(1.f);
         }
         monster->turn_right();
     }
     if (w){
-        if (!s){
-            monster->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);
-            if (is_colliding_with_wall(image, monster, direction::up, Scale_ratioX, Scale_ratioY))
-            {
-                monster->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
-            }
+        monster->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);
+        if (is_colliding_with_wall(image, monster, direction::up, Scale_ratioX, Scale_ratioY))
+        {
+            //monster->set_v_ratio(2.f);
+            //monster->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
+            //monster->set_v_ratio(1.f);
         }
     }
-    if (s){
-            monster->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
-            if (is_colliding_with_wall(image, monster, direction::down, Scale_ratioX, Scale_ratioY))
-            {
-                monster->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);
-            }
+    else if (s){
+        monster->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
+        if (is_colliding_with_wall(image, monster, direction::down, Scale_ratioX, Scale_ratioY))
+        {
+            //monster->set_v_ratio(2.f);
+            //monster->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);
+            //monster->set_v_ratio(0.5f);
     }
-    if (!a && !d && !s && !w){
-        monster->animate(elapsed,direction::none,Scale_ratioX,Scale_ratioY);
-        monster->set_is_running(false);
-    }
+    monster->set_is_running(true);
+}
 }
 
 

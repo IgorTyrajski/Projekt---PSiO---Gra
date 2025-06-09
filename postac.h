@@ -46,10 +46,12 @@ public:
     void turn_left(){
         Vector2f scale = getScale();
         setScale(-abs(scale.x), scale.y);
+        is_left=true;
     }
     void turn_right(){
         Vector2f scale = getScale();
         setScale(abs(scale.x), scale.y);
+        is_right=true;
     }
     void reset_origin_point(){
         setOrigin(getLocalBounds().width / 2.f, getLocalBounds().height / 2.f);
@@ -63,11 +65,19 @@ public:
     void set_v_ratio(const float &ratio){
         v_ratio=ratio;
     }
+    void set_is_running(const bool &temp){
+        is_moving = temp;
+    }
+    bool get_is_running(){
+        return is_moving;
+    }
 
 protected:
     float x_speed; //do ustawienia
     float y_speed;
     float v_ratio; //przelicznik predkosci
     bool is_moving=false;
+    bool is_left=false;
+    bool is_right=true;
 };
 #endif // POSTAC_H

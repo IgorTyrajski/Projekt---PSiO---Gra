@@ -49,10 +49,6 @@ public:
         this->set_proper_scale(scaleX, scaleY);
         reset_origin_point();
     }
-    void czy_widzi_bohatera(const bool &temp){
-        if (temp) v_ratio=2.f;
-        else v_ratio=1.f;
-    }
 
 private:
 

@@ -8,6 +8,7 @@
 #include "funkcje.h"
 #include "potwor.h"
 #include "floor_square.h"
+#include "Struct_promien_slyszenia.h"
 
 #include <memory>
 #include <vector>
@@ -64,6 +65,9 @@ bool check_if_hero_visible(const unique_ptr<potwor> &monster,const unique_ptr<bo
     }
     return true;
 }
+
+
+
 
 template<typename T>
 float distance_between_p(T* &obiekt1, T* &obiekt2 ){
@@ -142,6 +146,15 @@ vector<floor_square*> create_path(const vector<floor_square*> &tales, floor_squa
 
 }
 
+
+bool check_if_hero_hearable(const vector <unique_ptr<promien_slysz>> &promienie,const unique_ptr<potwor> &monster){
+    for (auto &p : promienie){
+        if (p->getGlobalBounds().intersects(monster->getGlobalBounds())){
+            return true;
+        }
+    }
+    return false;
+}
 vector<floor_square*> create_floor(const Image &image,
                                     const float &scaleX, const float &scaleY) {
     const int baseTileSize = 21;
@@ -184,8 +197,7 @@ vector<floor_square*> create_floor(const Image &image,
 }
 
 void move_monster(unique_ptr<potwor> &monster,vector<floor_square*> path, Time &elapsed,
-                  const float &Scale_ratioX, const float &Scale_ratioY,
-                  float &run_ratio){
+                  const float &Scale_ratioX, const float &Scale_ratioY){
     const float e = 5.f;
     const float scaled_e_x = e * Scale_ratioX;
     const float scaled_e_y = e * Scale_ratioY;

@@ -24,8 +24,6 @@ int main()
 {
 
     bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
-    bool liczenie_trasy=true; //tryb mega wydajności, jak na razie program oblicza trase w każdej klatce,
-    //ale końcowo to nie bedzie wymagane
 
     vector<Sprite*> to_draw;
     vector<Postac*> postacie;
@@ -85,6 +83,7 @@ int main()
 
     vector<floor_square*> floor_tile=create_floor(image_sciany,Scale_ratioX,Scale_ratioY);
     floor_square* hero_pos=nullptr;
+    floor_square* possible_hero_pos=nullptr;
     floor_square* monster_pos=nullptr;
     vector<floor_square*> path;
 
@@ -133,11 +132,7 @@ int main()
     mask.setFillColor(Color::Black);
     ////////////////////////////////////////////////
     int frame_count1=0, frame_count2=0, frame_count_h=0, frame_count_m=0; //frame counter bohatera i potwora
-    float run_ratio=1.f; //uzywany do zmiany predkosci zmiany klatek animacji
     Time czas_do_nowego_promienia = Time::Zero;
-
-
-
 
     while (window.isOpen()) {
         Time elapsed=clock.restart();
@@ -151,12 +146,12 @@ int main()
         window.clear(Color::Black);
         ////////////ruszanie///////////
 
-        move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany, run_ratio, promienie_sluchu,czas_do_nowego_promienia);
+        move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany, promienie_sluchu,czas_do_nowego_promienia);
         //fog_of_war->setPosition(hero->getPosition());
         fog_of_war.setUniform("lightCenter", hero->getPosition());
         fog_of_war.setUniform("lightRadius", aktualny_promien);
 
-        int kl_h=10*run_ratio;
+        int kl_h=10;
         if ((frame_count1%kl_h)+1==kl_h){
             frame_count_h++;
             hero->change_frame(frame_count_h);
@@ -164,7 +159,7 @@ int main()
 
         hero_pos = nullptr;
         monster_pos = nullptr;
-
+        possible_hero_pos=nullptr;
         for (auto &t : floor_tile){
             if (t->get_is_wall()) {
                 t->setFillColor(Color(255, 0, 0, 200));  // czerwony
@@ -180,20 +175,32 @@ int main()
             }
         }
 
+        bool can_see = check_if_hero_visible(monster,hero,image_sciany,Scale_general);
+        bool can_hear = check_if_hero_hearable(promienie_sluchu,monster);
 
-        if (liczenie_trasy) path=create_path(floor_tile,hero_pos,monster_pos);
-        move_monster(monster,path,elapsed,Scale_ratioX,Scale_ratioY,run_ratio);
-        monster->czy_widzi_bohatera(check_if_hero_visible(monster,hero,image_sciany,Scale_general));
-        if (develop_mode) cout<<monster->get_v_ratio()<<endl;
+        if (can_see) {
+            monster->set_v_ratio(monster->get_v_ratio()*2.f);
+            path=create_path(floor_tile,hero_pos,monster_pos);
+        }
+        if (can_hear) {
+            monster->set_v_ratio(monster->get_v_ratio()*2.f);
+            for (auto &t : floor_tile){
+                if (t->getGlobalBounds().contains(promienie_sluchu[0]->getPosition())) {
+                    possible_hero_pos = t;
+                }
+
+            }
+            path=create_path(floor_tile,possible_hero_pos,monster_pos);
+        }
+        if (!can_hear && !can_see){
+            monster->set_v_ratio(1.f);
+        }
 
         int kl_m=8;
         if ((frame_count2%kl_m)+1==kl_m){
             frame_count_m++;
             monster->change_frame(frame_count_m, Scale_ratioX, Scale_ratioY);
         }
-
-
-
 
         for (auto &tile : floor_tile) {
             tile->reset_astar_state();
@@ -224,6 +231,7 @@ int main()
             promienie_sluchu.erase(remove_if(
                 promienie_sluchu.begin(), promienie_sluchu.end(), [](const unique_ptr<promien_slysz>& p) {
                     return p->get_pozostaly_czas() < seconds(0);}), promienie_sluchu.end());
+
             //////////rysowanie podglogi//////////
 
             for (auto &t : floor_tile){

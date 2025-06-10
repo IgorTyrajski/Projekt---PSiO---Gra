@@ -1,3 +1,6 @@
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 #ifndef MOVE_MONSTER_H
 #define MOVE_MONSTER_H
 
@@ -11,6 +14,7 @@
 #include "Struct_promien_slyszenia.h"
 
 #include <memory>
+#include <math.h>
 #include <vector>
 #include <list>
 #include <cmath>

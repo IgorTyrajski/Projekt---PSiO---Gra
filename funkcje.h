@@ -152,4 +152,13 @@ float distance_between(const unique_ptr<T> &obiekt1, const unique_ptr<T> &obiekt
 
     return dis;
 }
+template<typename T>
+template<typename S>
+float distance_between(const unique_ptr<T> &obiekt1, const unique_ptr<S> &obiekt2 ){
+    Vector2f poz1=obiekt1->getPosition();
+    Vector2f poz2=obiekt2->getPosition();
+    float dis=sqrt(pow((poz2.x-poz1.x),2) + pow(poz2.y-poz1.y,2));
+
+    return dis;
+}
 #endif // FUNKCJE_H

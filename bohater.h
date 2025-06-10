@@ -45,17 +45,12 @@ public:
     vector<obiekt> get_obiekty(){
         return inventory;
     }
-    void set_is_running(const bool &temp){
-        is_running = temp;
-    }
-    bool get_is_running(){
-        return is_running;
-    }
+
 
 private:
     int hp;
 
-    bool is_running=false;
+
 
     vector<obiekt> inventory;
     const string text_path_run="assets\\bohater\\Cyborg_run.png";

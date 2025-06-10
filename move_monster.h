@@ -7,6 +7,7 @@
 #include "bohater.h"
 #include "funkcje.h"
 #include "potwor.h"
+#include "floor_square.h"
 
 #include <memory>
 #include <vector>
@@ -16,63 +17,45 @@
 using namespace std;
 using namespace sf;
 
-class floor_square : public RectangleShape {
-public:
-    bool get_is_wall(){
-        return is_wall;
-    }
-    void set_is_wall(const bool & temp) {
-        is_wall=temp;
-    }
-    void set_was_visited(const bool &temp){
-        was_visited=temp;
-    }
-    bool get_was_visited(){
-        return was_visited;
-    }
-    vector<floor_square*> get_neighbours (){
-        return neighbours;
-    }
-    void add_neighbour(floor_square* &temp){
-        neighbours.push_back(temp);
-    }
-    floor_square* get_parent(){
-        return parent;
-    }
-    void set_parent(floor_square* &temp){
-        parent=temp;
-    }
-    void set_local(const float &temp){
-        local_score=temp;
-    }
-    void set_global(const float &temp){
-        global_score=temp;
-    }
-    float get_local(){
-        return local_score;
-    }
-    float get_global(){
-       return global_score;
-    }
-    void reset_astar_state() {
-        was_visited = false;
-        parent = nullptr;
-        local_score = INFINITY;
-        global_score = INFINITY;
-    }
+float distance_between(const unique_ptr<potwor> &obiekt1, const unique_ptr<bohater> &obiekt2 ){
+    Vector2f poz1=obiekt1->getPosition();
+    Vector2f poz2=obiekt2->getPosition();
+    float dis=sqrt(pow((poz2.x-poz1.x),2) + pow(poz2.y-poz1.y,2));
+
+    return dis;
+}
+
+bool check_if_hero_visible(const unique_ptr<potwor> &monster,const unique_ptr<bohater> &hero, const Image &image){
+    const float seeing_range=300.f;
+    const float seeing_angle=60.0f;
+    float base_angle;
+    bool result;
+    const float r_dis=distance_between(monster,hero);
+    Vector2f delta = monster->getPosition() - hero->getPosition();
+    float r_angle = atan2(delta.y, delta.x) * 180.f / M_PI; // wynik w stopniach
+
+    bool a=monster->get_is_looking_left();
+    bool d=monster->get_is_looking_right();
+    bool w=monster->get_is_looking_top();
+    bool s=monster->get_is_looking_down();
+    if (a) base_angle=180.f;
+    if (d) base_angle=0.f;
+    if (w) base_angle=90.f;
+    if (s) base_angle=-90.f;
+
+    if (r_dis>seeing_range) return false;
+    float angle_diff = r_angle - base_angle;
+    while (angle_diff > 180.f) angle_diff -= 360.f;
+    while (angle_diff < -180.f) angle_diff += 360.f;
+    if (abs(angle_diff) > seeing_angle) return false;
 
 
-private:
-    vector<floor_square*> neighbours;
-    floor_square* parent=nullptr;
-    bool was_visited=false;
-    bool is_wall=false;
-    float local_score=INFINITY;
-    float global_score=INFINITY;
-};
+}
+
+
 
 template<typename T>
-float distance_between(T* &obiekt1, T* &obiekt2 ){
+float distance_between_p(T* &obiekt1, T* &obiekt2 ){
     Vector2f poz1=obiekt1->getPosition();
     Vector2f poz2=obiekt2->getPosition();
     float dis=sqrt(pow((poz2.x-poz1.x),2) + pow(poz2.y-poz1.y,2));
@@ -81,17 +64,14 @@ float distance_between(T* &obiekt1, T* &obiekt2 ){
 }
 
 bool is_wall(const sf::Image &image_sciany,
-                             floor_square* &obj,
-                            float scaleX, float scaleY)
+             floor_square* &obj,
+             float scaleX, float scaleY)
 {
     float posX = obj->getPosition().x / scaleX;
     float posY = obj->getPosition().y / scaleY;
 
     float offsetX = 0.f;
     float offsetY = 0.f;
-
-    float width  = obj->getGlobalBounds().width / scaleX;
-    float height = obj->getGlobalBounds().height / scaleY;
 
     int pixelX = static_cast<int>(posX + offsetX);
     int pixelY = static_cast<int>(posY + offsetY);
@@ -110,7 +90,7 @@ vector<floor_square*> create_path(const vector<floor_square*> &tales, floor_squa
     vector<floor_square*> path;
     floor_square *current= monster_pos;
     monster_pos->set_local(0.0f);
-    monster_pos->set_global(distance_between(monster_pos,hero_pos));
+    monster_pos->set_global(distance_between_p(monster_pos,hero_pos));
 
     list<floor_square*> listNotTestedTales;
     listNotTestedTales.push_back(monster_pos);
@@ -131,11 +111,11 @@ vector<floor_square*> create_path(const vector<floor_square*> &tales, floor_squa
             if (!n->get_was_visited() && !n->get_is_wall()){
                 listNotTestedTales.push_back(n);
             }
-            float possLowerGoal = current->get_local() + distance_between(current,n);
+            float possLowerGoal = current->get_local() + distance_between_p(current,n);
             if (possLowerGoal < n->get_local()){
                 n->set_parent(current);
                 n->set_local(possLowerGoal);
-                n->set_global(n->get_local()+distance_between(n,hero_pos));
+                n->set_global(n->get_local()+distance_between_p(n,hero_pos));
             }
         }
     }
@@ -151,7 +131,7 @@ vector<floor_square*> create_path(const vector<floor_square*> &tales, floor_squa
 
 }
 
-vector<floor_square*> create_floor(const RenderWindow &window, const Image &image,
+vector<floor_square*> create_floor(const Image &image,
                                     const float &scaleX, const float &scaleY) {
     const int baseTileSize = 21;
     vector<floor_square*> result;
@@ -185,57 +165,40 @@ vector<floor_square*> create_floor(const RenderWindow &window, const Image &imag
             if ((abs(dx - baseTileSize * scaleX) < eps && dy < eps) ||
                 (abs(dy - baseTileSize * scaleY) < eps && dx < eps))
 
-                result[i]->add_neighbour(result[j]);
-            }
-
+            result[i]->add_neighbour(result[j]);
         }
+
+    }
     return result;
 }
 
-void move_monster(unique_ptr<bohater> &monster,vector<floor_square*> path, Time &elapsed,
-               const Image &image,const float &Scale_ratioX, const float &Scale_ratioY,
-                float &run_ratio){
-    bool a = path[path.size()-2]->getPosition().x<monster->getPosition().x;
-    bool d = path[path.size()-2]->getPosition().x>monster->getPosition().x;
-    bool w = path[path.size()-2]->getPosition().y<monster->getPosition().y;
-    bool s = path[path.size()-2]->getPosition().y>monster->getPosition().y;
+void move_monster(unique_ptr<potwor> &monster,vector<floor_square*> path, Time &elapsed,
+                  const float &Scale_ratioX, const float &Scale_ratioY,
+                  float &run_ratio){
+    const float e = 5.f;
+    const float scaled_e_x = e * Scale_ratioX;
+    const float scaled_e_y = e * Scale_ratioY;
+
+    bool a = path[path.size()-2]->getPosition().x + scaled_e_x < monster->getPosition().x;
+    bool d = path[path.size()-2]->getPosition().x - scaled_e_x > monster->getPosition().x;
+    bool w = path[path.size()-2]->getPosition().y + scaled_e_y < monster->getPosition().y;
+    bool s = path[path.size()-2]->getPosition().y - scaled_e_y > monster->getPosition().y;
 
     if (a){
         monster->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);
-        if (is_colliding_with_wall(image, monster, direction::left, Scale_ratioX, Scale_ratioY))
-        {
-            monster->animate(elapsed,direction::right,Scale_ratioX,Scale_ratioY);
-        }
         monster->turn_left();
     }
-    if (d){
+    else if (d){
         monster->animate(elapsed,direction::right,Scale_ratioX,Scale_ratioY);
-        if (is_colliding_with_wall(image, monster, direction::right, Scale_ratioX, Scale_ratioY))
-        {
-            monster->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);
-        }
         monster->turn_right();
     }
     if (w){
-        if (!s){
-            monster->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);
-            if (is_colliding_with_wall(image, monster, direction::up, Scale_ratioX, Scale_ratioY))
-            {
-                monster->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
-            }
-        }
+        monster->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);
     }
-    if (s){
-            monster->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
-            if (is_colliding_with_wall(image, monster, direction::down, Scale_ratioX, Scale_ratioY))
-            {
-                monster->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);
-            }
+    else if (s){
+        monster->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
     }
-    if (!a && !d && !s && !w){
-        monster->animate(elapsed,direction::none,Scale_ratioX,Scale_ratioY);
-        monster->set_is_running(false);
-    }
+    monster->set_is_running(true);
 }
 
 

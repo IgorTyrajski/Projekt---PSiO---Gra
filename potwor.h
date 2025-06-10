@@ -34,17 +34,19 @@ public:
         if (is_moving) {
             int fr = frame_count % 5;
             switch (fr) {
-            case 0: setTexture(run1); break;
-            case 1: setTexture(run2); break;
-            case 2: setTexture(run3); break;
-            case 3: setTexture(run4); break;
-            case 4: setTexture(run5); frame_count = 0; break;
+            case 0: {setTexture(run1); break;}
+            case 1: {setTexture(run2); break;}
+            case 2: {setTexture(run3); break;}
+            case 3: {setTexture(run4); break;}
+            case 4: {setTexture(run5); frame_count = 0; break;}
             }
+            if (is_left) turn_left();
+            if (is_right) turn_right();
         } else {
             int fr = frame_count % 5 + 1;
             switch (fr) {
-            case 3: setTexture(idle1); break;
-            case 5: setTexture(idle2); frame_count = 0; break;
+            case 3: {setTexture(idle1); break;}
+            case 5: {setTexture(idle2); frame_count = 0; break;}
             }
         }
         setScale(1,1);
@@ -53,7 +55,6 @@ public:
     }
 
 private:
-    bool is_left=false, is_right=false;
 
     Texture idle1, idle2;
     Texture run1, run2,run3,run4,run5;

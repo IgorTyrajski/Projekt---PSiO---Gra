@@ -46,8 +46,11 @@ public:
         return inventory;
     }
 
+
 private:
     int hp;
+
+
 
     vector<obiekt> inventory;
     const string text_path_run="assets\\bohater\\Cyborg_run.png";

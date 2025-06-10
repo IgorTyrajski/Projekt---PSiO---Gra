@@ -5,16 +5,14 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include "TextureManager.h"
 using namespace std;
 using namespace sf;
 
 class obiekt : public Sprite{
 public:
-    obiekt (string path_idle){
-        if (!texture.loadFromFile(path_idle)) {
-            cout << "Could not load texture" << endl;
-        }
-        setTexture(texture);
+    obiekt (const string &path){
+        setTexture(TextureManager::getInstance().getTexture(path));
     }
     bool get_can_open_doors(){
         return can_open_doors;

@@ -4,7 +4,10 @@
 #include <SFML/Graphics.hpp>
 #include "postac.h"
 #include "bohater.h"
+#include "Struct_promien_slyszenia.h"
 #include <memory>
+#include <vector>
+#include <cmath>
 
 using namespace std;
 using namespace sf;
@@ -20,23 +23,28 @@ void set_proper_scale(unique_ptr<T> &s, const float &x_ratio, const float &y_rat
 
 template<typename T>
 void reset_origin_point(unique_ptr<T> &s){
-    s->setOrigin(s->getLocalBounds().width / 2, s->getLocalBounds().height / 2);
+    s->setOrigin(s->getLocalBounds().width / 2.f, s->getLocalBounds().height / 2.f);
+}
+template<typename T>
+void reset_origin_point(T* &s){
+    s->setOrigin(s->getLocalBounds().width / 2.f, s->getLocalBounds().height / 2.f);
 }
 
+template<typename T>
 bool is_colliding_with_wall(const sf::Image &image_sciany,
-                            std::unique_ptr<bohater> &hero,
+                            std::unique_ptr<T> &obj,
                             const direction &dir, float scaleX, float scaleY)
  {
     // Współrzędne bohatera przeskalowane do bazowej rozdzielczości (np. 1920x1080)
-    float posX = hero->getPosition().x / scaleX;
-    float posY = hero->getPosition().y / scaleY;
+    float posX = obj->getPosition().x / scaleX;
+    float posY = obj->getPosition().y / scaleY;
 
     float offsetX = 0.f;
     float offsetY = 0.f;
 
     // Rozmiar sprite'a bohatera również cofnięty do bazowej skali
-    float width  = hero->getGlobalBounds().width / scaleX;
-    float height = hero->getGlobalBounds().height / scaleY;
+    float width  = obj->getGlobalBounds().width / scaleX;
+    float height = obj->getGlobalBounds().height / scaleY;
 
     // Wyznacz przesunięcie kierunkowe względem środka postaci
     if (dir == direction::up)
@@ -70,11 +78,18 @@ bool is_colliding_with_wall(const sf::Image &image_sciany,
 
 void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
                const float &Scale_ratioX, const float &Scale_ratioY,
-               const Image &image){
+               const Image &image, float &run_ratio,
+                vector <unique_ptr<promien_slysz>> &promienie_sluchu, Time &czas_do_nowego_promienia){
     bool a = Keyboard::isKeyPressed(Keyboard::A);
     bool d = Keyboard::isKeyPressed(Keyboard::D);
     bool w = Keyboard::isKeyPressed(Keyboard::W);
     bool s = Keyboard::isKeyPressed(Keyboard::S);
+    bool shift = Keyboard::isKeyPressed(Keyboard::LShift);
+
+
+    if (shift) {hero->set_v_ratio(0.6f); hero->set_is_running(false); run_ratio=1.3f;}
+    else {hero->set_v_ratio(1.f); hero->set_is_running(true); run_ratio=1.f;}
+
     if (a){
         if (!d){
             hero->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);
@@ -115,6 +130,34 @@ void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
     }
     if (!a && !d && !s && !w){
         hero->animate(elapsed,direction::none,Scale_ratioX,Scale_ratioY);
+        hero->set_is_running(false);
     }
+    if (hero->get_is_running() && czas_do_nowego_promienia <= Time::Zero){
+        unique_ptr<promien_slysz> r_sluchu = make_unique<promien_slysz>();
+        r_sluchu->setRadius(1.f);
+        reset_origin_point(r_sluchu);
+        r_sluchu->setPosition(hero->getPosition().x,hero->getPosition().y);
+        r_sluchu->setFillColor(Color(0,0,0,0));
+        r_sluchu->setOutlineThickness(10.f);
+        r_sluchu->setOutlineColor(Color(250,0,0));
+        promienie_sluchu.emplace_back(std::move(r_sluchu));
+        czas_do_nowego_promienia = seconds(0.7f);
+    }
+}
+template<typename T>
+float distance_between(const unique_ptr<T> &obiekt1, const unique_ptr<T> &obiekt2 ){
+    Vector2f poz1=obiekt1->getPosition();
+    Vector2f poz2=obiekt2->getPosition();
+    float dis=sqrt(pow((poz2.x-poz1.x),2) + pow(poz2.y-poz1.y,2));
+
+    return dis;
+}
+template<typename T>
+float distance_between_m(const unique_ptr<T> &obiekt1, const unique_ptr<T> &obiekt2 ){
+    Vector2f poz1=obiekt1->getPosition();
+    Vector2f poz2=obiekt2->getPosition();
+    float dis=sqrt(pow((poz2.x-poz1.x),2) + pow(poz2.y-poz1.y,2));
+
+    return dis;
 }
 #endif // FUNKCJE_H

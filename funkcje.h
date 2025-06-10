@@ -5,6 +5,7 @@
 #include "postac.h"
 #include "bohater.h"
 #include "Struct_promien_slyszenia.h"
+#include "dzwiek.h"
 #include <memory>
 #include <vector>
 #include <cmath>
@@ -79,7 +80,9 @@ bool is_colliding_with_wall(const sf::Image &image_sciany,
 void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
                const float &Scale_ratioX, const float &Scale_ratioY,
                const Image &image, float &run_ratio,
-                vector <unique_ptr<promien_slysz>> &promienie_sluchu, Time &czas_do_nowego_promienia){
+                vector <unique_ptr<promien_slysz>> &promienie_sluchu, Time &czas_do_nowego_promienia, Dzwiek &dzwiek){
+    bool is_moving = false;
+
     bool a = Keyboard::isKeyPressed(Keyboard::A);
     bool d = Keyboard::isKeyPressed(Keyboard::D);
     bool w = Keyboard::isKeyPressed(Keyboard::W);
@@ -97,7 +100,12 @@ void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
             {
                 hero->animate(elapsed,direction::right,Scale_ratioX,Scale_ratioY);
             }
+            else
+            {
+                is_moving = true;
+            }
             hero->turn_left();
+
         }
     }
     if (d){
@@ -106,6 +114,10 @@ void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
             if (is_colliding_with_wall(image, hero, direction::right, Scale_ratioX, Scale_ratioY))
             {
                 hero->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);
+            }
+            else
+            {
+                is_moving = true;
             }
             hero->turn_right();
         }
@@ -117,6 +129,10 @@ void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
             {
                 hero->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
             }
+            else
+            {
+                is_moving = true;
+            }
         }
     }
     if (s){
@@ -125,12 +141,18 @@ void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
             if (is_colliding_with_wall(image, hero, direction::down, Scale_ratioX, Scale_ratioY))
             {
                 hero->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);
+
+            }
+            else
+            {
+                is_moving = true;
             }
         }
     }
     if (!a && !d && !s && !w){
         hero->animate(elapsed,direction::none,Scale_ratioX,Scale_ratioY);
         hero->set_is_running(false);
+        is_moving = false;
     }
     if (hero->get_is_running() && czas_do_nowego_promienia <= Time::Zero){
         unique_ptr<promien_slysz> r_sluchu = make_unique<promien_slysz>();
@@ -142,6 +164,14 @@ void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
         r_sluchu->setOutlineColor(Color(250,0,0));
         promienie_sluchu.emplace_back(std::move(r_sluchu));
         czas_do_nowego_promienia = seconds(0.7f);
+    }
+    if (is_moving)
+    {
+        dzwiek.start_chodzenie();
+    }
+    else
+    {
+        dzwiek.stop_chodzenie();
     }
 }
 template<typename T>

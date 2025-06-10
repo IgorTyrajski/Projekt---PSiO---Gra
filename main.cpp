@@ -12,7 +12,7 @@
 #include "bohater.h"
 //#include "obiekt.h"
 #include "potwor.h"
-//#include "dzwiek.h"
+#include "dzwiek.h"
 #include "Struct_promien_slyszenia.h"
 
 
@@ -23,7 +23,7 @@ using namespace sf;
 int main()
 {
 
-    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
     bool liczenie_trasy=true; //tryb mega wydajności, jak na razie program oblicza trase w każdej klatce,
     //ale końcowo to nie bedzie wymagane
 
@@ -110,6 +110,8 @@ int main()
     hero->reset_origin_point();
     set_proper_scale(hero,Scale_ratioX,Scale_ratioY);
     postacie.push_back(hero.get());
+    Dzwiek dzwiek_manager;
+    dzwiek_manager.load_chodzenie_sound("assets/bohater/ruch.wav");
     ///////////////////////////////////////
     /////////////////////////////////////////////////////
     /////zasłona by bohater widział tylko to co ma widzieć/////
@@ -151,7 +153,7 @@ int main()
         window.clear(Color::Black);
         ////////////ruszanie///////////
 
-        move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany, run_ratio, promienie_sluchu,czas_do_nowego_promienia);
+        move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany, run_ratio, promienie_sluchu,czas_do_nowego_promienia,dzwiek_manager);
         //fog_of_war->setPosition(hero->getPosition());
         fog_of_war.setUniform("lightCenter", hero->getPosition());
         fog_of_war.setUniform("lightRadius", aktualny_promien);

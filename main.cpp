@@ -14,6 +14,7 @@
 #include "potwor.h"
 //#include "dzwiek.h"
 #include "Struct_promien_slyszenia.h"
+#include "visibility_rays.h"
 
 
 
@@ -23,7 +24,7 @@ using namespace sf;
 int main()
 {
 
-    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
     bool liczenie_trasy=true; //tryb mega wydajności, jak na razie program oblicza trase w każdej klatce,
     //ale końcowo to nie bedzie wymagane
 
@@ -31,12 +32,12 @@ int main()
     vector<Postac*> postacie;
     vector <unique_ptr<promien_slysz>> promienie_sluchu; //tu sa przechowywane dzwieki tupniecia bohatera
 
+
     Clock clock;
     ////////window///////////////
     VideoMode desktop = VideoMode::getDesktopMode();
     RenderWindow window(desktop, "My window", Style::Fullscreen);
 
-    // Po utworzeniu okna pobierz jego rozmiar:
     Vector2u windowSize = window.getSize();
 
     const float baseX = 1920.f;
@@ -82,7 +83,7 @@ int main()
     to_draw.push_back(sciany.get());
 
 
-    vector<floor_square*> floor_tile=create_floor(window,image_sciany,Scale_ratioX,Scale_ratioY);
+    vector<floor_square*> floor_tile=create_floor(image_sciany,Scale_ratioX,Scale_ratioY);
     floor_square* hero_pos=nullptr;
     floor_square* monster_pos=nullptr;
     vector<floor_square*> path;
@@ -134,6 +135,10 @@ int main()
     int frame_count1=0, frame_count2=0, frame_count_h=0, frame_count_m=0; //frame counter bohatera i potwora
     float run_ratio=1.f; //uzywany do zmiany predkosci zmiany klatek animacji
     Time czas_do_nowego_promienia = Time::Zero;
+
+
+
+
     while (window.isOpen()) {
         Time elapsed=clock.restart();
 
@@ -157,15 +162,9 @@ int main()
             hero->change_frame(frame_count_h);
         }
 
-        //move_monster(monster,hero,elapsed,Scale_ratioX,Scale_ratioY,image_sciany,run_ratio);
-
-        int kl_m=8;
-        if ((frame_count2%kl_m)+1==kl_m){
-            frame_count_m++;
-            //monster->change_frame(frame_count_m, Scale_ratioX, Scale_ratioY);
-        }
         hero_pos = nullptr;
         monster_pos = nullptr;
+
         for (auto &t : floor_tile){
             if (t->get_is_wall()) {
                 t->setFillColor(Color(255, 0, 0, 200));  // czerwony
@@ -180,7 +179,18 @@ int main()
                 monster_pos = t;
             }
         }
+
+
         if (liczenie_trasy) path=create_path(floor_tile,hero_pos,monster_pos);
+        move_monster(monster,path,elapsed,Scale_ratioX,Scale_ratioY,run_ratio);
+
+        int kl_m=8;
+        if ((frame_count2%kl_m)+1==kl_m){
+            frame_count_m++;
+            monster->change_frame(frame_count_m, Scale_ratioX, Scale_ratioY);
+        }
+
+
 
 
         for (auto &tile : floor_tile) {
@@ -237,10 +247,9 @@ int main()
         czas_do_nowego_promienia -= elapsed;
 
     }
+
     for (floor_square* ptr : floor_tile) {
         delete ptr;
     }
-    delete hero_pos;
-    delete monster_pos;
     return 0;
 }

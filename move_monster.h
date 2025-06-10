@@ -178,7 +178,7 @@ void move_monster(unique_ptr<potwor> &monster,vector<floor_square*> path, Time &
     const float e = 5.f;
     const float scaled_e_x = e * Scale_ratioX;
     const float scaled_e_y = e * Scale_ratioY;
-
+    if (!path.empty()){
     bool a = path[path.size()-2]->getPosition().x + scaled_e_x < monster->getPosition().x;
     bool d = path[path.size()-2]->getPosition().x - scaled_e_x > monster->getPosition().x;
     bool w = path[path.size()-2]->getPosition().y + scaled_e_y < monster->getPosition().y;
@@ -199,6 +199,7 @@ void move_monster(unique_ptr<potwor> &monster,vector<floor_square*> path, Time &
         monster->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
     }
     monster->set_is_running(true);
+}
 }
 
 

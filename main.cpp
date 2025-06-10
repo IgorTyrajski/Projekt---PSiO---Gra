@@ -14,7 +14,6 @@
 #include "potwor.h"
 //#include "dzwiek.h"
 #include "Struct_promien_slyszenia.h"
-#include "visibility_rays.h"
 
 
 

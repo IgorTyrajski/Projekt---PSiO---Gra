@@ -12,15 +12,9 @@ using namespace sf;
 class potwor : public Postac {
 public:
     potwor(){
-        idle1=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_idle_1.png");
-        idle2=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_idle_2.png");
-        run1=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_1.png");
-        run2=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_2.png");
-        run3=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_3.png");
-        run4=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_4.png");
-        run5=TextureManager::getInstance().getTexture("assets\\potwor\\scifi_alien_run_5.png");
+        setTexture(TextureManager::getInstance().getTexture(text_path_idle));
         is_moving=false;
-        setTexture(idle1);
+        setTextureRect(IntRect(5, 16, 19, 31));
         reset_origin_point();
     };
     // W klasie potwor
@@ -32,31 +26,37 @@ public:
 
     void change_frame(int &frame_count, float scaleX, float scaleY) {
         if (is_moving) {
+            setTexture(TextureManager::getInstance().getTexture(text_path_run));;
             int fr = frame_count % 5;
             switch (fr) {
-            case 0: {setTexture(run1); break;}
-            case 1: {setTexture(run2); break;}
-            case 2: {setTexture(run3); break;}
-            case 3: {setTexture(run4); break;}
-            case 4: {setTexture(run5); frame_count = 0; break;}
+            case 0: {setTextureRect(IntRect(16, 5, 105-16, 55-5));break;}
+            case 1: {setTextureRect(IntRect(111, 10, 219-111, 55-10));break;}
+            case 2: {setTextureRect(IntRect(230, 0, 320-230, 55-0));break;}
+            case 3: {setTextureRect(IntRect(339, 0, 396-339, 56-0));break;}
+            case 4: {setTextureRect(IntRect(404, 0, 467-404, 55-0)); frame_count = 0;break;}
             }
-            if (is_left) turn_left();
-            if (is_right) turn_right();
+
+
         } else {
+
             int fr = frame_count % 5 + 1;
             switch (fr) {
-            case 3: {setTexture(idle1); break;}
-            case 5: {setTexture(idle2); frame_count = 0; break;}
+            case 3: {setTextureRect(IntRect(4, 2, 68-4, 56-4)); break;}
+            case 5: {setTextureRect(IntRect(73, 4, 133-73, 56-4));break;}
             }
         }
         setScale(1,1);
         this->set_proper_scale(scaleX, scaleY);
         reset_origin_point();
     }
+    void czy_widzi_bohatera(const bool &temp){
+        if (temp) v_ratio=2.f;
+        else v_ratio=1.f;
+    }
 
 private:
 
-    Texture idle1, idle2;
-    Texture run1, run2,run3,run4,run5;
+    const string text_path_run="assets\\potwor\\scifi_alien_run.png";
+    const string text_path_idle="assets\\potwor\\scifi_alien_idle.png";
 };
 #endif // POTWOR_H

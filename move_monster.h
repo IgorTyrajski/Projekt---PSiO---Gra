@@ -25,11 +25,10 @@ float distance_between(const unique_ptr<potwor> &obiekt1, const unique_ptr<bohat
     return dis;
 }
 
-bool check_if_hero_visible(const unique_ptr<potwor> &monster,const unique_ptr<bohater> &hero, const Image &image){
-    const float seeing_range=300.f;
-    const float seeing_angle=60.0f;
+bool check_if_hero_visible(const unique_ptr<potwor> &monster,const unique_ptr<bohater> &hero, const Image &image, const float &scale){
+    const float seeing_range=600.f/scale;
+    const float seeing_angle=70.0f;
     float base_angle;
-    bool result;
     const float r_dis=distance_between(monster,hero);
     Vector2f delta = monster->getPosition() - hero->getPosition();
     float r_angle = atan2(delta.y, delta.x) * 180.f / M_PI; // wynik w stopniach
@@ -49,10 +48,22 @@ bool check_if_hero_visible(const unique_ptr<potwor> &monster,const unique_ptr<bo
     while (angle_diff < -180.f) angle_diff += 360.f;
     if (abs(angle_diff) > seeing_angle) return false;
 
+    Vector2f start = monster->getPosition();
+    Vector2f end = hero->getPosition();
+    const int steps = 300;
+    for (int i = 1; i <= steps; ++i) {
+        float t = static_cast<float>(i) / steps;
+        float x = start.x + (end.x - start.x) * t;
+        float y = start.y + (end.y - start.y) * t;
 
+        // Sprawdź, czy (x, y) mieści się w rozmiarze obrazka
+        if (x < 0 || y < 0 || x >= image.getSize().x || y >= image.getSize().y) continue;
+
+        Color pixel = image.getPixel(static_cast<unsigned int>(x), static_cast<unsigned int>(y));
+        if (pixel.a > 0) return false; // przeszkoda zasłania
+    }
+    return true;
 }
-
-
 
 template<typename T>
 float distance_between_p(T* &obiekt1, T* &obiekt2 ){
@@ -65,7 +76,7 @@ float distance_between_p(T* &obiekt1, T* &obiekt2 ){
 
 bool is_wall(const sf::Image &image_sciany,
              floor_square* &obj,
-             float scaleX, float scaleY)
+             const float &scaleX, const float &scaleY)
 {
     float posX = obj->getPosition().x / scaleX;
     float posY = obj->getPosition().y / scaleY;
@@ -186,11 +197,11 @@ void move_monster(unique_ptr<potwor> &monster,vector<floor_square*> path, Time &
 
     if (a){
         monster->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);
-        monster->turn_left();
+            monster->turn_right(); //dla potwora jest odwrotnie "jak w lewo to w prawo"
     }
     else if (d){
         monster->animate(elapsed,direction::right,Scale_ratioX,Scale_ratioY);
-        monster->turn_right();
+            monster->turn_left(); //dla potwora jest odwrotnie "jak w prawo to w lewo"
     }
     if (w){
         monster->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);

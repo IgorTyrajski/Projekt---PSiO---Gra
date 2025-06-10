@@ -54,12 +54,15 @@ public:
     void turn_left(){
         Vector2f scale = getScale();
         setScale(-abs(scale.x), scale.y);
-        is_left=true;
+        looking_left=true;
     }
     void turn_right(){
         Vector2f scale = getScale();
         setScale(abs(scale.x), scale.y);
-        is_right=true;
+        looking_right=true;
+    }
+    float get_v_ratio(){
+        return v_ratio;
     }
     void reset_origin_point(){
         setOrigin(getLocalBounds().width / 2.f, getLocalBounds().height / 2.f);
@@ -96,8 +99,6 @@ protected:
     float y_speed;
     float v_ratio; //przelicznik predkosci
     bool is_moving=false;
-    bool is_left=false;
-    bool is_right=true;
-    bool looking_right=false,looking_left=false,looking_top=false,looking_down=false;
+    bool looking_right=false,looking_left=true,looking_top=false,looking_down=false;
 };
 #endif // POSTAC_H

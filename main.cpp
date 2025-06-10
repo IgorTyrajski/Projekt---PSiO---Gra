@@ -23,7 +23,7 @@ using namespace sf;
 int main()
 {
 
-    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
     bool liczenie_trasy=true; //tryb mega wydajności, jak na razie program oblicza trase w każdej klatce,
     //ale końcowo to nie bedzie wymagane
 
@@ -46,8 +46,9 @@ int main()
 
     const float Scale_ratioX = window_X / baseX;
     const float Scale_ratioY = window_Y / baseY;
+    const float Scale_general=(Scale_ratioX+Scale_ratioY)/2.f;
     window.setFramerateLimit(60);
-    if (develop_mode) {cout << "Okno: " << window_X << " x " << window_Y << endl;}
+    if (develop_mode) {cout << "Okno: " << window_X << " x " << window_Y << endl; cout << "Skala X: " << Scale_ratioX << " Skala Y: " << Scale_ratioY << endl;}
     //////////////// background/////////////////////////////
     unique_ptr<Sprite> background = make_unique<Sprite>();
     Texture& bgTexture = TextureManager::getInstance().getTexture("assets\\mapa\\tlo.png");
@@ -182,6 +183,8 @@ int main()
 
         if (liczenie_trasy) path=create_path(floor_tile,hero_pos,monster_pos);
         move_monster(monster,path,elapsed,Scale_ratioX,Scale_ratioY,run_ratio);
+        monster->czy_widzi_bohatera(check_if_hero_visible(monster,hero,image_sciany,Scale_general));
+        if (develop_mode) cout<<monster->get_v_ratio()<<endl;
 
         int kl_m=8;
         if ((frame_count2%kl_m)+1==kl_m){

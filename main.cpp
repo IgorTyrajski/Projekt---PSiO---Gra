@@ -14,6 +14,7 @@
 #include "potwor.h"
 #include "dzwiek.h"
 #include "Struct_promien_slyszenia.h"
+#include "TextureManager.h"
 
 
 
@@ -23,10 +24,14 @@ using namespace sf;
 int main()
 {
 
-    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
     vector<Sprite*> to_draw;
     vector<Postac*> postacie;
     vector <unique_ptr<promien_slysz>> promienie_sluchu; //tu sa przechowywane dzwieki tupniecia bohatera
+
+    Dzwiek dzwiek;
+    dzwiek.load_serce_sound("assets/bohater/heartbeat.wav");
+    dzwiek.start_serce_system();
 
 
     Clock clock;
@@ -44,6 +49,7 @@ int main()
     const float Scale_ratioX = window_X / baseX;
     const float Scale_ratioY = window_Y / baseY;
     const float Scale_general=(Scale_ratioX+Scale_ratioY)/2.f;
+    vector<unique_ptr<potwor>> potwory;
     window.setFramerateLimit(60);
     if (develop_mode) {cout << "Okno: " << window_X << " x " << window_Y << endl; cout << "Skala X: " << Scale_ratioX << " Skala Y: " << Scale_ratioY << endl;}
     //////////////// background/////////////////////////////
@@ -97,6 +103,8 @@ int main()
     monster->reset_origin_point();
     set_proper_scale(monster,Scale_ratioX,Scale_ratioY);
     postacie.push_back(monster.get());
+    potwory.push_back(std::move(monster));
+
     /////////////////////////////////////////////////
     ////////////////// bohater /////////////////////narazie orientacyjnie
     unique_ptr<bohater>hero = make_unique<bohater>();
@@ -108,8 +116,7 @@ int main()
     hero->reset_origin_point();
     set_proper_scale(hero,Scale_ratioX,Scale_ratioY);
     postacie.push_back(hero.get());
-    Dzwiek dzwiek_manager;
-    dzwiek_manager.load_chodzenie_sound("assets/bohater/ruch.wav");
+    dzwiek.load_chodzenie_sound("assets/bohater/ruch.wav");
     ///////////////////////////////////////
     /////////////////////////////////////////////////////
     /////zasłona by bohater widział tylko to co ma widzieć/////
@@ -147,7 +154,7 @@ int main()
         window.clear(Color::Black);
         ////////////ruszanie///////////
 
-        move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany, promienie_sluchu,czas_do_nowego_promienia,dzwiek_manager);
+        move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany, promienie_sluchu,czas_do_nowego_promienia,dzwiek,potwory);
         //fog_of_war->setPosition(hero->getPosition());
         fog_of_war.setUniform("lightCenter", hero->getPosition());
         fog_of_war.setUniform("lightRadius", aktualny_promien);
@@ -171,20 +178,20 @@ int main()
             if (t->getGlobalBounds().contains(hero->getPosition())) {
                 hero_pos = t;
             }
-            if (t->getGlobalBounds().contains(monster->getPosition())) {
+            if (t->getGlobalBounds().contains(potwory[0]->getPosition())) {
                 monster_pos = t;
             }
         }
 
-        bool can_see = check_if_hero_visible(monster,hero,image_sciany,Scale_general);
-        bool can_hear = check_if_hero_hearable(promienie_sluchu,monster);
+        bool can_see = check_if_hero_visible(potwory[0],hero,image_sciany,Scale_general);
+        bool can_hear = check_if_hero_hearable(promienie_sluchu,potwory[0]);
 
         if (can_see) {
-            monster->set_v_ratio(monster->get_v_ratio()*2.f);
+            potwory[0]->set_v_ratio(potwory[0]->get_v_ratio()*2.f);
             path=create_path(floor_tile,hero_pos,monster_pos);
         }
         if (can_hear) {
-            monster->set_v_ratio(monster->get_v_ratio()*2.f);
+            potwory[0]->set_v_ratio(potwory[0]->get_v_ratio()*2.f);
             for (auto &t : floor_tile){
                 if (t->getGlobalBounds().contains(promienie_sluchu[0]->getPosition())) {
                     possible_hero_pos = t;
@@ -194,13 +201,13 @@ int main()
             path=create_path(floor_tile,possible_hero_pos,monster_pos);
         }
         if (!can_hear && !can_see){
-            monster->set_v_ratio(1.f);
+            potwory[0]->set_v_ratio(1.f);
         }
 
         int kl_m=8;
         if ((frame_count2%kl_m)+1==kl_m){
             frame_count_m++;
-            monster->change_frame(frame_count_m, Scale_ratioX, Scale_ratioY);
+            potwory[0]->change_frame(frame_count_m, Scale_ratioX, Scale_ratioY);
         }
 
         for (auto &tile : floor_tile) {

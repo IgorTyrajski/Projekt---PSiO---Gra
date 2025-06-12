@@ -6,9 +6,11 @@
 #include "bohater.h"
 #include "Struct_promien_slyszenia.h"
 #include "dzwiek.h"
+#include "potwor.h"
 #include <memory>
 #include <vector>
 #include <cmath>
+#include <limits>
 
 using namespace std;
 using namespace sf;
@@ -80,7 +82,7 @@ bool is_colliding_with_wall(const sf::Image &image_sciany,
 void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
                const float &Scale_ratioX, const float &Scale_ratioY,
                const Image &image,
-                vector <unique_ptr<promien_slysz>> &promienie_sluchu, Time &czas_do_nowego_promienia, Dzwiek &dzwiek){
+                vector <unique_ptr<promien_slysz>> &promienie_sluchu, Time &czas_do_nowego_promienia, Dzwiek &dzwiek,const vector <unique_ptr<potwor>>& monster){
     bool is_moving = false;
     bool a = Keyboard::isKeyPressed(Keyboard::A);
     bool d = Keyboard::isKeyPressed(Keyboard::D);
@@ -171,6 +173,15 @@ void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
     else
     {
         dzwiek.stop_chodzenie();
+    }
+    if (!monster.empty())
+    {
+        Vector2f hero_pos = hero->getPosition();
+        Vector2f potwor_pos = monster[0]->getPosition();
+        float distance = sqrt(pow(potwor_pos.x - hero_pos.x, 2) +
+                            pow(potwor_pos.y - hero_pos.y, 2));
+
+        dzwiek.update_serce_heartbeat(distance, 800.0f);
     }
 }
 template<typename T>

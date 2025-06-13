@@ -30,43 +30,57 @@ float distance_between(const unique_ptr<potwor> &obiekt1, const unique_ptr<bohat
     return dis;
 }
 
-bool check_if_hero_visible(const unique_ptr<potwor> &monster,const unique_ptr<bohater> &hero, const Image &image, const float &scale){
-    const float seeing_range=600.f/scale;
-    const float seeing_angle=70.0f;
-    float base_angle;
-    const float r_dis=distance_between(monster,hero);
-    Vector2f delta = monster->getPosition() - hero->getPosition();
-    float r_angle = atan2(delta.y, delta.x) * 180.f / M_PI; // wynik w stopniach
+bool check_if_hero_visible(const unique_ptr<potwor> &monster, const unique_ptr<bohater> &hero, const Image &image, const float &scale, unique_ptr<ConvexShape> &cone) {
+    const float seeing_range = 600.f * scale;
+    const float seeing_angle = 60.0f;
 
-    bool a=monster->get_is_looking_left();
-    bool d=monster->get_is_looking_right();
-    bool w=monster->get_is_looking_top();
-    bool s=monster->get_is_looking_down();
-    if (a) base_angle=180.f;
-    if (d) base_angle=0.f;
-    if (w) base_angle=90.f;
-    if (s) base_angle=-90.f;
+    // Sprawdź, w którą stronę patrzy potwór
+    Vector2f velocity = monster->getPosition() - monster->getPrevPosition(); // musisz dodać getPrevPosition()
 
-    if (r_dis>seeing_range) return false;
+    if (velocity.x == 0 && velocity.y == 0)
+        return false; // nie rusza się – nie wiadomo gdzie patrzy
+
+    float base_angle = atan2(velocity.y, velocity.x) * 180.f / M_PI;
+
+
+    // Ustal base_angle na podstawie kierunku patrzenia
+
+
+    // Oblicz kąt do bohatera
+    Vector2f delta = hero->getPosition() - monster->getPosition();
+    float r_angle = atan2(delta.y, delta.x) * 180.f / M_PI;  // kąt w stopniach [-180, 180]
+
+    // Normalizuj angle_diff do zakresu [-180, 180]
     float angle_diff = r_angle - base_angle;
     while (angle_diff > 180.f) angle_diff -= 360.f;
     while (angle_diff < -180.f) angle_diff += 360.f;
+
+    // Rysowanie stożka widzenia (debug)
+    cone->setPointCount(3);
+    cone->setPoint(0, monster->getPosition());
+    cone->setPoint(1, monster->getPosition() + Vector2f(cos((base_angle - seeing_angle) * M_PI / 180.f), sin((base_angle - seeing_angle) * M_PI / 180.f)) * seeing_range);
+    cone->setPoint(2, monster->getPosition() + Vector2f(cos((base_angle + seeing_angle) * M_PI / 180.f), sin((base_angle + seeing_angle) * M_PI / 180.f)) * seeing_range);
+
+    // Sprawdź, czy bohater jest w zasięgu wzroku
+    float distance = sqrt(delta.x * delta.x + delta.y * delta.y);
+    if (distance > seeing_range) return false;
     if (abs(angle_diff) > seeing_angle) return false;
 
+    // Sprawdź, czy nie ma przeszkód na linii wzroku
     Vector2f start = monster->getPosition();
     Vector2f end = hero->getPosition();
-    const int steps = 300;
+    const int steps = 600;
     for (int i = 1; i <= steps; ++i) {
         float t = static_cast<float>(i) / steps;
-        float x = start.x + (end.x - start.x) * t;
-        float y = start.y + (end.y - start.y) * t;
+        float x = (start.x + (end.x - start.x) * t) / scale;
+        float y = (start.y + (end.y - start.y) * t) / scale;
 
-        // Sprawdź, czy (x, y) mieści się w rozmiarze obrazka
+
         if (x < 0 || y < 0 || x >= image.getSize().x || y >= image.getSize().y) continue;
-
         Color pixel = image.getPixel(static_cast<unsigned int>(x), static_cast<unsigned int>(y));
         if (pixel.a > 0) return false; // przeszkoda zasłania
     }
+
     return true;
 }
 
@@ -113,6 +127,8 @@ vector<floor_square*> create_path(const vector<floor_square*> &tales, floor_squa
 
     list<floor_square*> listNotTestedTales;
     listNotTestedTales.push_back(monster_pos);
+
+    if (hero_pos==monster_pos) return path;
 
     while (!listNotTestedTales.empty()){
         listNotTestedTales.sort([](floor_square *obj1, floor_square *obj2){
@@ -202,31 +218,37 @@ vector<floor_square*> create_floor(const Image &image,
 
 void move_monster(unique_ptr<potwor> &monster,vector<floor_square*> path, Time &elapsed,
                   const float &Scale_ratioX, const float &Scale_ratioY){
-    const float e = 5.f;
+    const float e = 8.f;
     const float scaled_e_x = e * Scale_ratioX;
     const float scaled_e_y = e * Scale_ratioY;
-    if (!path.empty()){
-    bool a = path[path.size()-2]->getPosition().x + scaled_e_x < monster->getPosition().x;
-    bool d = path[path.size()-2]->getPosition().x - scaled_e_x > monster->getPosition().x;
-    bool w = path[path.size()-2]->getPosition().y + scaled_e_y < monster->getPosition().y;
-    bool s = path[path.size()-2]->getPosition().y - scaled_e_y > monster->getPosition().y;
-
-    if (a){
-        monster->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);
-            monster->turn_right(); //dla potwora jest odwrotnie "jak w lewo to w prawo"
+    bool a=false,d=false,w=false,s=false;
+    if ( path.size()!=1){
+        a = path[path.size()-2]->getPosition().x + scaled_e_x < monster->getPosition().x;
+        d = path[path.size()-2]->getPosition().x - scaled_e_x > monster->getPosition().x;
+        w = path[path.size()-2]->getPosition().y + scaled_e_y < monster->getPosition().y;
+        s = path[path.size()-2]->getPosition().y - scaled_e_y > monster->getPosition().y;
     }
-    else if (d){
-        monster->animate(elapsed,direction::right,Scale_ratioX,Scale_ratioY);
-            monster->turn_left(); //dla potwora jest odwrotnie "jak w prawo to w lewo"
+    else if (path.size()==1){
+        a = path[path.size()-1]->getPosition().x + scaled_e_x < monster->getPosition().x;
+        d = path[path.size()-1]->getPosition().x - scaled_e_x > monster->getPosition().x;
+        w = path[path.size()-1]->getPosition().y + scaled_e_y < monster->getPosition().y;
+        s = path[path.size()-1]->getPosition().y - scaled_e_y > monster->getPosition().y;
     }
-    if (w){
-        monster->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);
-    }
-    else if (s){
-        monster->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
-    }
-    monster->set_is_running(true);
-}
+        if (a){
+            monster->animate(elapsed,direction::left,Scale_ratioX,Scale_ratioY);
+                monster->turn_leftM();
+        }
+        else if (d){
+            monster->animate(elapsed,direction::right,Scale_ratioX,Scale_ratioY);
+                monster->turn_rightM();
+        }
+        if (w){
+            monster->animate(elapsed,direction::up,Scale_ratioX,Scale_ratioY);
+        }
+        else if (s){
+            monster->animate(elapsed,direction::down,Scale_ratioX,Scale_ratioY);
+        }
+        monster->set_is_running(true);
 }
 
 

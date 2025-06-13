@@ -24,7 +24,7 @@ using namespace sf;
 int main()
 {
 
-    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
     vector<Sprite*> to_draw;
     vector<Postac*> postacie;
     vector <unique_ptr<promien_slysz>> promienie_sluchu; //tu sa przechowywane dzwieki tupniecia bohatera
@@ -88,7 +88,7 @@ int main()
 
     vector<floor_square*> floor_tile=create_floor(image_sciany,Scale_ratioX,Scale_ratioY);
     floor_square* hero_pos=nullptr;
-    floor_square* possible_hero_pos=nullptr;
+    floor_square* goal=nullptr;
     floor_square* monster_pos=nullptr;
     vector<floor_square*> path;
 
@@ -104,6 +104,10 @@ int main()
     set_proper_scale(monster,Scale_ratioX,Scale_ratioY);
     postacie.push_back(monster.get());
     potwory.push_back(std::move(monster));
+
+
+    unique_ptr<ConvexShape> cone = make_unique<ConvexShape>(); //stożek widoczności potwora
+    cone->setFillColor(sf::Color(255, 255, 0, 80));
 
     /////////////////////////////////////////////////
     ////////////////// bohater /////////////////////narazie orientacyjnie
@@ -138,6 +142,12 @@ int main()
     float aktualny_promien=300.f;
     RectangleShape mask(Vector2f(windowSize.x, windowSize.y));
     mask.setFillColor(Color::Black);
+
+    hero_pos = nullptr;
+    monster_pos = nullptr;
+    goal=nullptr;
+
+
     ////////////////////////////////////////////////
     int frame_count1=0, frame_count2=0, frame_count_h=0, frame_count_m=0; //frame counter bohatera i potwora
     Time czas_do_nowego_promienia = Time::Zero;
@@ -165,43 +175,67 @@ int main()
             hero->change_frame(frame_count_h);
         }
 
-        hero_pos = nullptr;
-        monster_pos = nullptr;
-        possible_hero_pos=nullptr;
+
         for (auto &t : floor_tile){
             if (t->get_is_wall()) {
                 t->setFillColor(Color(255, 0, 0, 200));  // czerwony
             } else {
                 t->setFillColor(Color(200, 200, 200, 128));  // szary
             }
-
+        }
+        for (auto &t : floor_tile){
             if (t->getGlobalBounds().contains(hero->getPosition())) {
                 hero_pos = t;
+                break;
             }
+        }
+        for (auto &t : floor_tile){
             if (t->getGlobalBounds().contains(potwory[0]->getPosition())) {
                 monster_pos = t;
+                break;
             }
         }
 
-        bool can_see = check_if_hero_visible(potwory[0],hero,image_sciany,Scale_general);
+        bool can_see = check_if_hero_visible(potwory[0],hero,image_sciany,Scale_general,cone);
         bool can_hear = check_if_hero_hearable(promienie_sluchu,potwory[0]);
+        potwory[0]->set_v_ratio(1.f);
 
         if (can_see) {
-            potwory[0]->set_v_ratio(potwory[0]->get_v_ratio()*2.f);
-            path=create_path(floor_tile,hero_pos,monster_pos);
-        }
-        if (can_hear) {
-            potwory[0]->set_v_ratio(potwory[0]->get_v_ratio()*2.f);
-            for (auto &t : floor_tile){
-                if (t->getGlobalBounds().contains(promienie_sluchu[0]->getPosition())) {
-                    possible_hero_pos = t;
-                }
-
+            potwory[0]->set_v_ratio(potwory[0]->get_v_ratio() * 2.f);
+            for (auto &tile : floor_tile) {
+                tile->reset_astar_state();
             }
-            path=create_path(floor_tile,possible_hero_pos,monster_pos);
+            goal = hero_pos;  // Cel = pozycja bohatera
         }
-        if (!can_hear && !can_see){
+        // Jeśli nie widzi, ale słyszy
+        else if (!promienie_sluchu.empty() && can_hear) {
+            potwory[0]->set_v_ratio(potwory[0]->get_v_ratio() * 2.f);
+            for (auto &t : floor_tile) {
+                if (t->getGlobalBounds().contains(promienie_sluchu[0]->getPosition())) {
+                    goal = t;  // Cel = pozycja dźwięku
+                }
+            }
+            for (auto &tile : floor_tile) {
+                tile->reset_astar_state();
+            }
+        }
+        // Jeśli nie widzi i nie słyszy, ale ma już cel (np. ostatnią znaną pozycję bohatera)
+        else if (goal != nullptr) {
+            potwory[0]->set_v_ratio(1.f);  // Normalna prędkość
+        }
+        else {
             potwory[0]->set_v_ratio(1.f);
+            goal = nullptr;  // Brak celu
+        }
+
+        // Generuj ścieżkę tylko jeśli jest cel i nie jest to pozycja potwora
+        if (goal && goal != monster_pos) {
+            path = create_path(floor_tile, goal, monster_pos);
+        } else {
+            path.clear();  // Brak ścieżki
+        }
+        if (path.size()==1){
+            path.clear();
         }
 
         int kl_m=8;
@@ -209,10 +243,10 @@ int main()
             frame_count_m++;
             potwory[0]->change_frame(frame_count_m, Scale_ratioX, Scale_ratioY);
         }
-
-        for (auto &tile : floor_tile) {
-            tile->reset_astar_state();
+        if (!path.empty()){
+            move_monster(potwory[0],path,elapsed,Scale_ratioX,Scale_ratioY);
         }
+
 
         ///////////////////////////////
         ///////////DRAWING/////////////
@@ -227,6 +261,7 @@ int main()
 
         }
         if (develop_mode) {
+            window.draw(*cone);
             for (auto& p : promienie_sluchu) {
                 if (p->get_pozostaly_czas() >= milliseconds(0)) {
                     p->set_pozostaly_czas(p->get_pozostaly_czas() - elapsed);
@@ -263,6 +298,8 @@ int main()
         frame_count1++;
         frame_count2++;
         czas_do_nowego_promienia -= elapsed;
+
+        if (potwory.empty()) window.close();
 
     }
 

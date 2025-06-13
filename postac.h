@@ -24,6 +24,7 @@ public:
         }
         if (dir==direction::left){
             x_speed=abs(x_speed)*(-1);
+            prevPosition=getPosition();
             move(x_speed*t*v_ratio*x_ratio,0);
             is_moving=true;
             looking_left=true;
@@ -31,6 +32,7 @@ public:
         }
         else if (dir==direction::right){
             x_speed=abs(x_speed);
+            prevPosition=getPosition();
             move(x_speed*t*v_ratio*x_ratio,0);
             is_moving=true;
             looking_right=true;
@@ -38,6 +40,7 @@ public:
         }
         else if (dir==direction::up){
             y_speed=abs(y_speed)*(-1);
+            prevPosition=getPosition();
             move(0,y_speed*t*v_ratio*y_ratio);
             is_moving=true;
             looking_top=true;
@@ -45,12 +48,17 @@ public:
         }
         else if (dir==direction::down){
             y_speed=abs(y_speed);
+            prevPosition=getPosition();
             move(0,y_speed*t*v_ratio*y_ratio);
             is_moving=true;
             looking_down=true;
             looking_top=false;
         }
     }
+    Vector2f getPrevPosition() const {
+        return prevPosition;
+    }
+
     void turn_left(){
         Vector2f scale = getScale();
         setScale(-abs(scale.x), scale.y);
@@ -59,6 +67,16 @@ public:
     void turn_right(){
         Vector2f scale = getScale();
         setScale(abs(scale.x), scale.y);
+        looking_right=true;
+    }
+    void turn_leftM(){
+        Vector2f scale = getScale();
+        setScale(abs(scale.x), scale.y);
+        looking_left=true;
+    }
+    void turn_rightM(){
+        Vector2f scale = getScale();
+        setScale(-abs(scale.x), scale.y);
         looking_right=true;
     }
     float get_v_ratio(){
@@ -100,5 +118,7 @@ protected:
     float v_ratio; //przelicznik predkosci
     bool is_moving=false;
     bool looking_right=false,looking_left=true,looking_top=false,looking_down=false;
+
+    Vector2f prevPosition;
 };
 #endif // POSTAC_H

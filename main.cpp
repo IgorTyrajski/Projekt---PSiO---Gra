@@ -4,6 +4,7 @@
 #include <memory>
 #include <iostream>
 #include <algorithm>
+#include <ctime>
 
 
 #include "move_monster.h"
@@ -15,7 +16,7 @@
 #include "dzwiek.h"
 #include "Struct_promien_slyszenia.h"
 #include "TextureManager.h"
-
+#include "pokoj.h"
 
 
 using namespace std;
@@ -23,7 +24,7 @@ using namespace sf;
 
 int main()
 {
-
+    srand(time(NULL));
     bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
     vector<Sprite*> to_draw;
     vector<Postac*> postacie;
@@ -89,9 +90,16 @@ int main()
     vector<floor_square*> floor_tile=create_floor(image_sciany,Scale_ratioX,Scale_ratioY);
     floor_square* hero_pos=nullptr;
     floor_square* goal=nullptr;
+    floor_square* room_goal=nullptr;
     floor_square* monster_pos=nullptr;
     vector<floor_square*> path;
 
+    const int number_of_rooms=12;
+    vector<room> rooms=create_room();
+    if (rooms.empty()) {
+        cerr << "Blad: brak pokoi!" << endl;
+        return -1;
+    }
     ///////////////////////////////////
     ///////////Potwor//////////////////
     unique_ptr<potwor>monster = make_unique<potwor>();
@@ -151,14 +159,16 @@ int main()
     ////////////////////////////////////////////////
     int frame_count1=0, frame_count2=0, frame_count_h=0, frame_count_m=0; //frame counter bohatera i potwora
     Time czas_do_nowego_promienia = Time::Zero;
+    Time czekajnik = Time::Zero;
+    bool czy_pokoj_wybrany=false;
+    bool koniec=false;
+    bool czy_dotarl=false;
 
     while (window.isOpen()) {
         Time elapsed=clock.restart();
-
-
         Event event;
         while (window.pollEvent(event)) {
-            if (event.type == Event::Closed)
+            if (event.type == Event::Closed || koniec)
                 window.close();
         }
         window.clear(Color::Black);
@@ -196,16 +206,15 @@ int main()
             }
         }
 
+        //////////////caly ruch potwora//////////////////////////////////////////////////////////////
         bool can_see = check_if_hero_visible(potwory[0],hero,image_sciany,Scale_general,cone);
         bool can_hear = check_if_hero_hearable(promienie_sluchu,potwory[0]);
         potwory[0]->set_v_ratio(1.f);
 
         if (can_see) {
             potwory[0]->set_v_ratio(potwory[0]->get_v_ratio() * 2.f);
-            for (auto &tile : floor_tile) {
-                tile->reset_astar_state();
-            }
             goal = hero_pos;  // Cel = pozycja bohatera
+            czy_pokoj_wybrany = false;
         }
         // Jeśli nie widzi, ale słyszy
         else if (!promienie_sluchu.empty() && can_hear) {
@@ -213,10 +222,8 @@ int main()
             for (auto &t : floor_tile) {
                 if (t->getGlobalBounds().contains(promienie_sluchu[0]->getPosition())) {
                     goal = t;  // Cel = pozycja dźwięku
+                    czy_pokoj_wybrany = false;
                 }
-            }
-            for (auto &tile : floor_tile) {
-                tile->reset_astar_state();
             }
         }
         // Jeśli nie widzi i nie słyszy, ale ma już cel (np. ostatnią znaną pozycję bohatera)
@@ -228,14 +235,64 @@ int main()
             goal = nullptr;  // Brak celu
         }
 
-        // Generuj ścieżkę tylko jeśli jest cel i nie jest to pozycja potwora
-        if (goal && goal != monster_pos) {
-            path = create_path(floor_tile, goal, monster_pos);
-        } else {
-            path.clear();  // Brak ścieżki
+
+        if (!can_see && !can_hear && !czy_pokoj_wybrany) {
+            czekajnik = Time::Zero;
+            cout << "Rozpoczecie wyboru nowego pokoju" << endl;
+            const int room_nr = rand() % number_of_rooms; // zakres 0-11
+            cout << "Wybrany pokoj nr: " << room_nr+1 << endl;
+
+
+            int attempts = 0;
+            const int max_attempts = 100;
+            bool czy_znalazl = false;
+
+            while (!czy_znalazl && attempts < max_attempts) {
+                attempts++;
+                int x = rooms[room_nr].xl + rand() % (rooms[room_nr].xr - rooms[room_nr].xl + 1);
+                int y = rooms[room_nr].yu + rand() % (rooms[room_nr].yd - rooms[room_nr].yu + 1);
+
+                if (develop_mode) {
+                    cout << "Proba " << attempts << ": x=" << x << ", y=" << y << endl;
+                }
+
+                for (auto &t : floor_tile) {
+                    if (t->get_x() == x && t->get_y() == y && !t->get_is_wall()) {
+                        czy_pokoj_wybrany = true;
+                        room_goal = t;
+                        czy_znalazl = true;
+
+                        cout << "Znaleziono cel: x=" << x << ", y=" << y << endl;
+                        break;
+                    }
+                }
+
+            }
         }
-        if (path.size()==1){
-            path.clear();
+
+        if (goal && goal != monster_pos) {
+            for (auto &tile : floor_tile) {
+                tile->reset_astar_state();
+            }
+            path = create_path(floor_tile, goal, monster_pos);
+        }
+        else if (room_goal && room_goal!=monster_pos){
+            for (auto &tile : floor_tile) {
+                tile->reset_astar_state();
+            }
+            if (!(distance_between_p(monster_pos,room_goal)<100.f)){
+                path = create_path(floor_tile, room_goal, monster_pos);
+            }
+            else{
+                cout<<"helo"<<endl;
+                czekajnik+=elapsed;
+                if (czekajnik>seconds(3)){
+                    czy_pokoj_wybrany=false;
+                }
+            }
+        }
+          else {
+            path.clear();  // Brak ścieżki
         }
 
         int kl_m=8;
@@ -246,8 +303,11 @@ int main()
         if (!path.empty()){
             move_monster(potwory[0],path,elapsed,Scale_ratioX,Scale_ratioY);
         }
-
-
+        if (potwory[0]->getGlobalBounds().intersects(hero->getGlobalBounds())){
+            cout<<"KONIEC"<<endl;
+            koniec=true;
+        }
+        //////////////////////////////////////////////////////////////////////////
         ///////////////////////////////
         ///////////DRAWING/////////////
         for (auto &d : to_draw){
@@ -289,11 +349,12 @@ int main()
                 window.draw(*hero_pos);
             }
             if (monster_pos) {
-                //monster_pos->setFillColor(Color(0, 255, 0, 128));
+                monster_pos->setFillColor(Color(0, 255, 0, 128));
                 window.draw(*monster_pos);
             }
         }
-
+        cout<<monster_pos->get_x()<<" "<<monster_pos->get_y()<<endl<<endl;
+        cout<<room_goal->get_x()<< " "<<room_goal->get_y()<<endl;
         window.display();
         frame_count1++;
         frame_count2++;

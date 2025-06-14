@@ -34,39 +34,30 @@ bool check_if_hero_visible(const unique_ptr<potwor> &monster, const unique_ptr<b
     const float seeing_range = 600.f * scale;
     const float seeing_angle = 60.0f;
 
-    // Sprawdź, w którą stronę patrzy potwór
-    Vector2f velocity = monster->getPosition() - monster->getPrevPosition(); // musisz dodać getPrevPosition()
+    Vector2f velocity = monster->getPosition() - monster->getPrevPosition();
 
     if (velocity.x == 0 && velocity.y == 0)
-        return false; // nie rusza się – nie wiadomo gdzie patrzy
+        return false;
 
     float base_angle = atan2(velocity.y, velocity.x) * 180.f / M_PI;
 
-
-    // Ustal base_angle na podstawie kierunku patrzenia
-
-
-    // Oblicz kąt do bohatera
     Vector2f delta = hero->getPosition() - monster->getPosition();
-    float r_angle = atan2(delta.y, delta.x) * 180.f / M_PI;  // kąt w stopniach [-180, 180]
+    float r_angle = atan2(delta.y, delta.x) * 180.f / M_PI;
 
-    // Normalizuj angle_diff do zakresu [-180, 180]
     float angle_diff = r_angle - base_angle;
     while (angle_diff > 180.f) angle_diff -= 360.f;
     while (angle_diff < -180.f) angle_diff += 360.f;
 
-    // Rysowanie stożka widzenia (debug)
     cone->setPointCount(3);
     cone->setPoint(0, monster->getPosition());
     cone->setPoint(1, monster->getPosition() + Vector2f(cos((base_angle - seeing_angle) * M_PI / 180.f), sin((base_angle - seeing_angle) * M_PI / 180.f)) * seeing_range);
     cone->setPoint(2, monster->getPosition() + Vector2f(cos((base_angle + seeing_angle) * M_PI / 180.f), sin((base_angle + seeing_angle) * M_PI / 180.f)) * seeing_range);
 
-    // Sprawdź, czy bohater jest w zasięgu wzroku
     float distance = sqrt(delta.x * delta.x + delta.y * delta.y);
     if (distance > seeing_range) return false;
     if (abs(angle_diff) > seeing_angle) return false;
 
-    // Sprawdź, czy nie ma przeszkód na linii wzroku
+
     Vector2f start = monster->getPosition();
     Vector2f end = hero->getPosition();
     const int steps = 600;
@@ -75,10 +66,9 @@ bool check_if_hero_visible(const unique_ptr<potwor> &monster, const unique_ptr<b
         float x = (start.x + (end.x - start.x) * t) / scale;
         float y = (start.y + (end.y - start.y) * t) / scale;
 
-
         if (x < 0 || y < 0 || x >= image.getSize().x || y >= image.getSize().y) continue;
         Color pixel = image.getPixel(static_cast<unsigned int>(x), static_cast<unsigned int>(y));
-        if (pixel.a > 0) return false; // przeszkoda zasłania
+        if (pixel.a > 0) return false;
     }
 
     return true;
@@ -163,7 +153,6 @@ vector<floor_square*> create_path(const vector<floor_square*> &tales, floor_squa
         }
     }
     return path;
-
 }
 
 
@@ -182,8 +171,9 @@ vector<floor_square*> create_floor(const Image &image,
 
     const int maxX = image.getSize().x;
     const int maxY = image.getSize().y;
-
+    int xl=1;
     for (int x = 0; x + baseTileSize <= maxX; x += baseTileSize) {
+        int yl=1;
         for (int y = 0; y + baseTileSize <= maxY; y += baseTileSize) {
             floor_square* tile = new floor_square();
             tile->setSize(Vector2f(baseTileSize * scaleX, baseTileSize * scaleY));
@@ -197,8 +187,12 @@ vector<floor_square*> create_floor(const Image &image,
             if (isWall) {
                 tile->setFillColor(Color(255, 0, 0, 128));
             }
+            tile->set_x(xl);
+            tile->set_y(yl);
             result.push_back(tile);
+            yl++;
         }
+        xl++;
     }
     for (size_t i =0; i<result.size();i++){
         for (size_t j =0; j<result.size();j++){
@@ -211,7 +205,6 @@ vector<floor_square*> create_floor(const Image &image,
 
             result[i]->add_neighbour(result[j]);
         }
-
     }
     return result;
 }

@@ -38,18 +38,15 @@ bool is_colliding_with_wall(const sf::Image &image_sciany,
                             std::unique_ptr<T> &obj,
                             const direction &dir, float scaleX, float scaleY)
  {
-    // Współrzędne bohatera przeskalowane do bazowej rozdzielczości (np. 1920x1080)
     float posX = obj->getPosition().x / scaleX;
     float posY = obj->getPosition().y / scaleY;
 
     float offsetX = 0.f;
     float offsetY = 0.f;
 
-    // Rozmiar sprite'a bohatera również cofnięty do bazowej skali
     float width  = obj->getGlobalBounds().width / scaleX;
     float height = obj->getGlobalBounds().height / scaleY;
 
-    // Wyznacz przesunięcie kierunkowe względem środka postaci
     if (dir == direction::up)
         offsetY = -height / 2.f;
     else if (dir == direction::down)
@@ -59,21 +56,16 @@ bool is_colliding_with_wall(const sf::Image &image_sciany,
     else if (dir == direction::right)
         offsetX = width / 2.f;
 
-    // Finalna pozycja do sprawdzenia kolizji w bazowej rozdzielczości
     int pixelX = static_cast<int>(posX + offsetX);
     int pixelY = static_cast<int>(posY + offsetY);
 
-    // Zabezpieczenie przed wyjściem poza obrazek kolizji
     if (pixelX < 0 || pixelY < 0 ||
         pixelX >= static_cast<int>(image_sciany.getSize().x) ||
         pixelY >= static_cast<int>(image_sciany.getSize().y)) {
         return false;
     }
 
-    // Pobranie koloru piksela z obrazu kolizji
     Color pixel = image_sciany.getPixel(pixelX, pixelY);
-
-    // Kolizja = piksel z alfą > 0 (np. ściana, przeszkoda)
     return pixel.a > 0;
 }
 

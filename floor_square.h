@@ -19,7 +19,7 @@ public:
     bool get_is_wall(){
         return is_wall;
     }
-    void set_is_wall(const bool & temp) {
+    void set_is_wall(const bool &temp) {
         is_wall=temp;
     }
     void set_was_visited(const bool &temp){
@@ -58,9 +58,21 @@ public:
         local_score = INFINITY;
         global_score = INFINITY;
     }
-
+    int get_x(){
+        return x;
+    }
+    int get_y(){
+        return y;
+    }
+    void set_x(const int &temp){
+        x=temp;
+    }
+    void set_y(const int &temp){
+        y=temp;
+    }
 
 private:
+    int x,y;
     vector<floor_square*> neighbours;
     floor_square* parent=nullptr;
     bool was_visited=false;

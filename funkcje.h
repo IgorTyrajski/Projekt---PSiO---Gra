@@ -191,4 +191,10 @@ float distance_between_m(const unique_ptr<T> &obiekt1, const unique_ptr<T> &obie
 
     return dis;
 }
+float distance_between_m(const unique_ptr<obiekt>& obj1, const unique_ptr<bohater>& obj2) {
+    Vector2f poz1 = obj1->getPosition();
+    Vector2f poz2 = obj2->getPosition();
+    return sqrt(pow(poz2.x - poz1.x, 2) + pow(poz2.y - poz1.y, 2));
+}
+
 #endif // FUNKCJE_H

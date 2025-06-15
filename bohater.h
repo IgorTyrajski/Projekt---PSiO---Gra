@@ -42,17 +42,15 @@ public:
         }
         reset_origin_point();
     }
-    vector<obiekt> get_obiekty(){
+    const vector<unique_ptr<obiekt>>& get_inventory() const {
         return inventory;
     }
-
+    void add_item(unique_ptr<obiekt> ob){
+        inventory.push_back(std::move(ob));
+    }
 
 private:
-    int hp;
-
-
-
-    vector<obiekt> inventory;
+    vector<unique_ptr<obiekt>> inventory;
     const string text_path_run="assets\\bohater\\Cyborg_run.png";
     const string text_path_idle="assets\\bohater\\Cyborg_idle.png";
 

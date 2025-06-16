@@ -112,11 +112,18 @@ public:
     bool get_is_looking_down(){
         return looking_down;
     }
+    bool get_is_hidden(){
+        return is_hidden;
+    }
+    void set_is_hidden(const bool &temp){
+        is_hidden=temp;
+    }
 protected:
     float x_speed; //do ustawienia
     float y_speed;
     float v_ratio; //przelicznik predkosci
     bool is_moving=false;
+    bool is_hidden=false;
     bool looking_right=false,looking_left=true,looking_top=false,looking_down=false;
 
     Vector2f prevPosition;

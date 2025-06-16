@@ -25,10 +25,11 @@ using namespace sf;
 int main()
 {
     srand(time(NULL));
-    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
     vector<Sprite*> to_draw;
     vector<Postac*> postacie;
     vector<unique_ptr<obiekt>> obiekty;
+    vector<unique_ptr<obiekt>> obiekty_do_chowania;
     vector <unique_ptr<promien_slysz>> promienie_sluchu; //tu sa przechowywane dzwieki tupniecia bohatera
     vector<unique_ptr<potwor>> potwory;
     Dzwiek dzwiek;
@@ -107,13 +108,13 @@ int main()
     Texture& drzwi_zam=TextureManager::getInstance().getTexture("assets\\obiekty\\drzwi_zam.png");
     Texture&drzwi_otw=TextureManager::getInstance().getTexture("assets\\obiekty\\drzwi_otw.png");
     drzwi->setTexture(drzwi_zam);
-    drzwi->setScale(1.9f,1.9f);
+    drzwi->setScale(0.95f*Scale_general,0.95f*Scale_general);
     drzwi->setPosition(windowSize.x/1.239f, windowSize.y/3.5f);
     obiekty.push_back(std::move(drzwi));
 
     unique_ptr<obiekt> terminal = make_unique<obiekt>();
     terminal->setTexture(TextureManager::getInstance().getTexture("assets\\obiekty\\terminal.png"));
-    terminal->setScale(0.1f,0.1f);
+    terminal->setScale(0.05f*Scale_general,0.05f*Scale_general);
     terminal->setPosition(windowSize.x/1.15f, windowSize.y/3.f);
     reset_origin_point(terminal);
     obiekty.push_back(std::move(terminal));
@@ -130,9 +131,9 @@ int main()
     karta2->set_can_pick_up(true);
     karta3->set_can_pick_up(true);
 
-    karta1->setScale(0.04f,0.04f);
-    karta2->setScale(0.04f,0.04f);
-    karta3->setScale(0.04f,0.04f);
+    karta1->setScale(0.02f*Scale_general,0.02f*Scale_general);
+    karta2->setScale(0.02f*Scale_general,0.02f*Scale_general);
+    karta3->setScale(0.02f*Scale_general,0.02f*Scale_general);
 
     //położenie kart jest losowe
     const int polozenie_kart=rand()%3+1;
@@ -160,6 +161,34 @@ int main()
     obiekty.push_back(std::move(karta1));
     obiekty.push_back(std::move(karta2));
     obiekty.push_back(std::move(karta3));
+
+    unique_ptr<obiekt> szafa1 = make_unique<obiekt>();
+    szafa1->setTexture(TextureManager::getInstance().getTexture("assets\\obiekty\\szafa.png"));
+    szafa1->setScale(0.95f*Scale_general,0.95f*Scale_general);
+    reset_origin_point(szafa1);
+    szafa1->setPosition(windowSize.x/2.24f, windowSize.y/2.f);
+    szafa1->set_can_hide_in(true);
+    obiekty_do_chowania.push_back(std::move(szafa1));
+
+    unique_ptr<obiekt> szafa2 = make_unique<obiekt>();
+    szafa2->setTexture(TextureManager::getInstance().getTexture("assets\\obiekty\\szafa.png"));
+    szafa2->setScale(0.95f*Scale_general,0.95f*Scale_general);
+    reset_origin_point(szafa2);
+    szafa2->setPosition(windowSize.x/5.f, windowSize.y/1.4f);
+    szafa2->set_can_hide_in(true);
+    obiekty_do_chowania.push_back(std::move(szafa2));
+
+    unique_ptr<obiekt> szafa3 = make_unique<obiekt>();
+    szafa3->setTexture(TextureManager::getInstance().getTexture("assets\\obiekty\\szafa.png"));
+    szafa3->setScale(0.95f*Scale_general,0.95f*Scale_general);
+    reset_origin_point(szafa3);
+    szafa3->setPosition(windowSize.x/1.67f, windowSize.y/3.1f);
+    szafa3->set_can_hide_in(true);
+    obiekty_do_chowania.push_back(std::move(szafa3));
+
+
+
+
     ////////////////////////////////////
     ///////////Potwor//////////////////
     unique_ptr<potwor>monster = make_unique<potwor>();
@@ -219,6 +248,7 @@ int main()
     Time czekajnikZ = Time::Zero; //liczenie czasu od momentu zobaczenia/usłyszenia bohatera (jak dojdzie do np. źródła dźwięku czeka sekunde i idzie dalej)
     bool czy_pokoj_wybrany=false;
     bool koniec=false;
+    bool can_use_e = true;
 
     while (window.isOpen()) {
         Time elapsed=clock.restart();
@@ -229,8 +259,9 @@ int main()
         }
         window.clear(Color::Black);
         ////////////ruszanie///////////
-
-        move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany, promienie_sluchu,czas_do_nowego_promienia,dzwiek,potwory);
+        if (!hero->get_is_hidden()){
+            move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany, promienie_sluchu,czas_do_nowego_promienia,dzwiek,potwory);
+        }
         //fog_of_war->setPosition(hero->getPosition());
         fog_of_war.setUniform("lightCenter", hero->getPosition());
         fog_of_war.setUniform("lightRadius", aktualny_promien);
@@ -252,11 +283,30 @@ int main()
                     }
             }
         }
-        ////////////////////////////
+        if (!Keyboard::isKeyPressed(Keyboard::E)) {
+            can_use_e = true;
+        }
+
+        // WYJŚCIE
+        if (hero->get_is_hidden() && Keyboard::isKeyPressed(Keyboard::E) && can_use_e){
+            hero->set_is_hidden(false);
+            can_use_e = false; // zablokuj kolejne wejście do szafy
+        }
+
+        // WEJŚCIE
+        for (auto &t : obiekty_do_chowania){
+            if (!hero->get_is_hidden() && distance_between_m(t,hero)<50.f*Scale_general && Keyboard::isKeyPressed(Keyboard::E) && can_use_e){
+                hero->set_is_hidden(true);
+                can_use_e = false; // zablokuj kolejne użycie
+            }
+        }
+
+
+        /////////////////////otwarcie drzwi/////////////
         if (distance_between_m(obiekty[1], hero) < 70.f*Scale_general) {
             if (hero->get_inventory().size()>=2){
                 obiekty[0]->setTexture(drzwi_otw);
-                obiekty[0]->setScale(1.9f,1.9f);
+                obiekty[0]->setScale(0.95f*Scale_general,0.95f*Scale_general);
                 obiekty[0]->setPosition(windowSize.x/1.239f, windowSize.y/3.5f);
             }
         }
@@ -287,7 +337,7 @@ int main()
         bool can_hear = check_if_hero_hearable(promienie_sluchu,potwory[0]);
         potwory[0]->set_v_ratio(1.f);
 
-        if (can_see) {
+        if (can_see && !hero->get_is_hidden()) {
             potwory[0]->set_v_ratio(potwory[0]->get_v_ratio() * 2.f);
             goal = hero_pos;  // Cel = pozycja bohatera
             room_goal=nullptr;
@@ -343,7 +393,7 @@ int main()
             for (auto &tile : floor_tile) {
                 tile->reset_astar_state();
             }
-            if (!(distance_between_p(monster_pos, goal) < 80.f)) {
+            if (!(distance_between_p(monster_pos, goal) < 30.f*Scale_general)) {
                 path = create_path(floor_tile, goal, monster_pos);
                 czekajnikZ = Time::Zero;  // reset czekania, bo jeszcze nie dotarł
             } else {
@@ -394,7 +444,11 @@ int main()
         for (auto &t : obiekty ) {
             window.draw(*t);
         }
+        for (auto &t : obiekty_do_chowania ) {
+            window.draw(*t);
+        }
         for (auto &d : postacie){
+            if (d->get_is_hidden()) {continue;}
             window.draw(*d);
         }
 

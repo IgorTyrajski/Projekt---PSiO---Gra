@@ -1,13 +1,12 @@
 #ifndef FLOOR_SQUARE_H
 #define FLOOR_SQUARE_H
 
+//kratka podłogi (używana podczas pathfindingu)
+
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 
-
-#include <memory>
 #include <vector>
-
 #include <cmath>
 
 using namespace std;

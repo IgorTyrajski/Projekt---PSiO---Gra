@@ -1,6 +1,8 @@
 #ifndef TEXTUREMANAGER_H
 #define TEXTUREMANAGER_H
 
+//używany do wczytywania tekstur i nie powtarzania tego procesu wielokrotnie (+ jest bardziej "fancy" :) )
+
 #include <SFML/Graphics.hpp>
 #include <unordered_map>
 #include <string>
@@ -26,7 +28,7 @@ public:
                 exit(1);
             }
             tex.setSmooth(true);
-            auto [inserted_it, _] = textures.emplace(path, move(tex));
+            auto [inserted_it, _] = textures.emplace(path, std::move(tex));
             return inserted_it->second;
         }
         return it->second;

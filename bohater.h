@@ -20,7 +20,7 @@ public:
         if (is_moving) { // animacja biegu
             setTexture(TextureManager::getInstance().getTexture(text_path_run));
 
-            int fr = frame_count % 6 + 1;
+            const int fr = frame_count % 6 + 1;
             switch (fr) {
             case 1: setTextureRect(IntRect(5, 16, 19, 31)); break;
             case 2: setTextureRect(IntRect(52, 17, 18, 30)); break;
@@ -32,7 +32,7 @@ public:
         }
         else { // animacja dla stania w miejscu
             setTexture(TextureManager::getInstance().getTexture(text_path_idle));
-            int fr = frame_count % 4 + 1;
+            const int fr = frame_count % 4 + 1;
             switch (fr) {
             case 1: setTextureRect(IntRect(3, 13, 18 ,34)); break;
             case 2: setTextureRect(IntRect(51, 13, 19, 34)); break;

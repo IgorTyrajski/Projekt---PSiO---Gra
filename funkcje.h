@@ -25,7 +25,7 @@ void set_proper_scale(unique_ptr<T> &s, const float &x_ratio, const float &y_rat
 }
 
 template<typename T>
-void reset_origin_point(unique_ptr<T> &s){
+void reset_origin_point(unique_ptr<T> &s){ //ustawienie punktu na środek obiektu
     s->setOrigin(s->getLocalBounds().width / 2.f, s->getLocalBounds().height / 2.f);
 }
 template<typename T>
@@ -65,7 +65,7 @@ bool is_colliding_with_wall(const sf::Image &image_sciany,
         return false;
     }
 
-    Color pixel = image_sciany.getPixel(pixelX, pixelY);
+    Color pixel = image_sciany.getPixel(pixelX, pixelY); //jeżeli piksel na mapie ma kolor inny niż w pełni przezroczysty to znaczy że jest to ściana
     return pixel.a > 0;
 }
 
@@ -76,11 +76,11 @@ void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
                const Image &image,
                 vector <unique_ptr<promien_slysz>> &promienie_sluchu, Time &czas_do_nowego_promienia, Dzwiek &dzwiek,const vector <unique_ptr<potwor>>& monster){
     bool is_moving = false;
-    bool a = Keyboard::isKeyPressed(Keyboard::A);
-    bool d = Keyboard::isKeyPressed(Keyboard::D);
-    bool w = Keyboard::isKeyPressed(Keyboard::W);
-    bool s = Keyboard::isKeyPressed(Keyboard::S);
-    bool shift = Keyboard::isKeyPressed(Keyboard::LShift);
+    const bool a = Keyboard::isKeyPressed(Keyboard::A);
+    const bool d = Keyboard::isKeyPressed(Keyboard::D);
+    const bool w = Keyboard::isKeyPressed(Keyboard::W);
+    const bool s = Keyboard::isKeyPressed(Keyboard::S);
+    const bool shift = Keyboard::isKeyPressed(Keyboard::LShift);
 
 
     if (shift) {hero->set_v_ratio(0.6f); hero->set_is_running(false);}
@@ -98,7 +98,6 @@ void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
                 is_moving = true;
             }
             hero->turn_left();
-
         }
     }
     if (d){
@@ -175,14 +174,7 @@ void move_hero(unique_ptr<bohater> &hero, Time &elapsed,
         dzwiek.update_serce_heartbeat(distance, 800.0f);
     }
 }
-template<typename T>
-float distance_between(const unique_ptr<T> &obiekt1, const unique_ptr<T> &obiekt2 ){
-    Vector2f poz1=obiekt1->getPosition();
-    Vector2f poz2=obiekt2->getPosition();
-    float dis=sqrt(pow((poz2.x-poz1.x),2) + pow(poz2.y-poz1.y,2));
 
-    return dis;
-}
 template<typename T>
 float distance_between_m(const unique_ptr<T> &obiekt1, const unique_ptr<T> &obiekt2 ){
     Vector2f poz1=obiekt1->getPosition();

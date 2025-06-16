@@ -8,9 +8,7 @@ using namespace std;
 struct room{
     int xl,xr; //x lewy, x prawy
     int yd,yu; // y dolny, y gorny
-};
-
-//Pokoj z danymi o swoich "granicach", gdzie sie zaczyna i gdzie sie konczy
+}; //Pokoj z danymi o swoich "granicach", gdzie sie zaczyna i gdzie sie konczy
 
 
 //funkcje pokoju np. wybor pokoju, tworzenie ich itd
@@ -20,7 +18,7 @@ vector<room> create_room(){
     int xl, xr;
     int yd,yu;
 
-    for (int i=1;i<=number_of_rooms;i++){
+    for (int i=1;i<=number_of_rooms;i++){ // na "sztywno" ustawione granice pokoji
         switch (i){
             case 1:{
                 xl=18; xr=25;

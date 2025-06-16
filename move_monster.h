@@ -34,32 +34,32 @@ bool check_if_hero_visible(const unique_ptr<potwor> &monster, const unique_ptr<b
     const float seeing_range = 600.f * scale;
     const float seeing_angle = 60.0f;
 
-    Vector2f velocity = monster->getPosition() - monster->getPrevPosition();
+    const Vector2f velocity = monster->getPosition() - monster->getPrevPosition();
 
     if (velocity.x == 0 && velocity.y == 0)
         return false;
 
-    float base_angle = atan2(velocity.y, velocity.x) * 180.f / M_PI;
+    const float base_angle = atan2(velocity.y, velocity.x) * 180.f / M_PI;
 
-    Vector2f delta = hero->getPosition() - monster->getPosition();
-    float r_angle = atan2(delta.y, delta.x) * 180.f / M_PI;
+    const Vector2f delta = hero->getPosition() - monster->getPosition();
+    const float r_angle = atan2(delta.y, delta.x) * 180.f / M_PI;
 
     float angle_diff = r_angle - base_angle;
     while (angle_diff > 180.f) angle_diff -= 360.f;
     while (angle_diff < -180.f) angle_diff += 360.f;
 
-    cone->setPointCount(3);
+    cone->setPointCount(3); //stożek widzenia potwora (tylko dla celów wizualizacyjnych)
     cone->setPoint(0, monster->getPosition());
     cone->setPoint(1, monster->getPosition() + Vector2f(cos((base_angle - seeing_angle) * M_PI / 180.f), sin((base_angle - seeing_angle) * M_PI / 180.f)) * seeing_range);
     cone->setPoint(2, monster->getPosition() + Vector2f(cos((base_angle + seeing_angle) * M_PI / 180.f), sin((base_angle + seeing_angle) * M_PI / 180.f)) * seeing_range);
 
-    float distance = sqrt(delta.x * delta.x + delta.y * delta.y);
+    const float distance = sqrt(delta.x * delta.x + delta.y * delta.y);
     if (distance > seeing_range) return false;
     if (abs(angle_diff) > seeing_angle) return false;
 
 
-    Vector2f start = monster->getPosition();
-    Vector2f end = hero->getPosition();
+    const Vector2f start = monster->getPosition();
+    const Vector2f end = hero->getPosition();
     const int steps = 600;
     for (int i = 1; i <= steps; ++i) {
         float t = static_cast<float>(i) / steps;
@@ -67,7 +67,8 @@ bool check_if_hero_visible(const unique_ptr<potwor> &monster, const unique_ptr<b
         float y = (start.y + (end.y - start.y) * t) / scale;
 
         if (x < 0 || y < 0 || x >= image.getSize().x || y >= image.getSize().y) continue;
-        Color pixel = image.getPixel(static_cast<unsigned int>(x), static_cast<unsigned int>(y));
+
+        Color pixel = image.getPixel(static_cast<unsigned int>(x), static_cast<unsigned int>(y)); //jeżeli piksel na mapie ma kolor inny niż w pełni przezroczysty to znaczy że jest to ściana
         if (pixel.a > 0) return false;
     }
 
@@ -79,9 +80,9 @@ bool check_if_hero_visible(const unique_ptr<potwor> &monster, const unique_ptr<b
 
 template<typename T>
 float distance_between_p(T* &obiekt1, T* &obiekt2 ){
-    Vector2f poz1=obiekt1->getPosition();
-    Vector2f poz2=obiekt2->getPosition();
-    float dis=sqrt(pow((poz2.x-poz1.x),2) + pow(poz2.y-poz1.y,2));
+    const Vector2f poz1=obiekt1->getPosition();
+    const Vector2f poz2=obiekt2->getPosition();
+    const float dis=sqrt(pow((poz2.x-poz1.x),2) + pow(poz2.y-poz1.y,2));
 
     return dis;
 }
@@ -90,14 +91,11 @@ bool is_wall(const sf::Image &image_sciany,
              floor_square* &obj,
              const float &scaleX, const float &scaleY)
 {
-    float posX = obj->getPosition().x / scaleX;
-    float posY = obj->getPosition().y / scaleY;
+    const float posX = obj->getPosition().x / scaleX;
+    const float posY = obj->getPosition().y / scaleY;
 
-    float offsetX = 0.f;
-    float offsetY = 0.f;
-
-    int pixelX = static_cast<int>(posX + offsetX);
-    int pixelY = static_cast<int>(posY + offsetY);
+    const int pixelX = static_cast<int>(posX);
+    const int pixelY = static_cast<int>(posY);
 
     if (pixelX < 0 || pixelY < 0 ||
         pixelX >= static_cast<int>(image_sciany.getSize().x) ||
@@ -105,11 +103,11 @@ bool is_wall(const sf::Image &image_sciany,
         return false;
     }
 
-    Color pixel = image_sciany.getPixel(pixelX, pixelY);
+    Color pixel = image_sciany.getPixel(pixelX, pixelY); //jeżeli piksel na mapie ma kolor inny niż w pełni przezroczysty to znaczy że jest to ściana
     return pixel.a > 0;
 }
 
-vector<floor_square*> create_path(const vector<floor_square*> &tales, floor_square* &hero_pos, floor_square* &monster_pos){
+vector<floor_square*> create_path(floor_square* &hero_pos, floor_square* &monster_pos){ //algorytm A*, więcej tu: "https://www.datacamp.com/tutorial/a-star-algorithm"
     vector<floor_square*> path;
     floor_square *current= monster_pos;
     monster_pos->set_local(0.0f);
@@ -156,7 +154,7 @@ vector<floor_square*> create_path(const vector<floor_square*> &tales, floor_squa
 }
 
 
-bool check_if_hero_hearable(const vector <unique_ptr<promien_slysz>> &promienie,const unique_ptr<potwor> &monster){
+bool check_if_hero_hearable(const vector <unique_ptr<promien_slysz>> &promienie,const unique_ptr<potwor> &monster){ //jeżeli potwór dotyka któregoś z promieni słuchu to znaczy że go słyszy
     for (auto &p : promienie){
         if (p->getGlobalBounds().intersects(monster->getGlobalBounds())){
             return true;
@@ -164,7 +162,7 @@ bool check_if_hero_hearable(const vector <unique_ptr<promien_slysz>> &promienie,
     }
     return false;
 }
-vector<floor_square*> create_floor(const Image &image,
+vector<floor_square*> create_floor(const Image &image, //funkcja tworząca podłogę jako kratki
                                     const float &scaleX, const float &scaleY) {
     const int baseTileSize = 21;
     vector<floor_square*> result;
@@ -209,7 +207,7 @@ vector<floor_square*> create_floor(const Image &image,
     return result;
 }
 
-void move_monster(unique_ptr<potwor> &monster,vector<floor_square*> path, Time &elapsed,
+void move_monster(unique_ptr<potwor> &monster,vector<floor_square*> path, Time &elapsed, //potwór zawsze idzie do przedostatniej kratki na ścieżce (ostatnia kratka to on sam, a pierwsza to cel)
                   const float &Scale_ratioX, const float &Scale_ratioY){
     const float e = 8.f;
     const float scaled_e_x = e * Scale_ratioX;
@@ -243,9 +241,4 @@ void move_monster(unique_ptr<potwor> &monster,vector<floor_square*> path, Time &
         }
         monster->set_is_running(true);
 }
-
-
-
-
-
 #endif // MOVE_MONSTER_H

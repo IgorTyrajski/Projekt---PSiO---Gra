@@ -1,6 +1,10 @@
 #ifndef STRUCT_PROMIEN_SLYSZENIA_H
 #define STRUCT_PROMIEN_SLYSZENIA_H
 
+//służy do określenia pola słyszenia bohatera przez potwora
+//rysowany jedynie w trybie developerskim
+
+
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 

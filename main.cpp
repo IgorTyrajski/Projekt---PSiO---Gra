@@ -26,12 +26,13 @@ int main()
 {
     srand(time(NULL));
     bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
-    vector<Sprite*> to_draw;
-    vector<Postac*> postacie;
-    vector<unique_ptr<obiekt>> obiekty;
-    vector<unique_ptr<obiekt>> obiekty_do_chowania;
+    vector<Sprite*> to_draw; // tu jest mapa, sciany itd.
+    vector<Postac*> postacie; // bohater
+    vector<unique_ptr<obiekt>> obiekty; //tu są katy dostępu
+    vector<unique_ptr<obiekt>> obiekty_do_chowania; //tu sa obiekty typu szafy i stoły w których można się chować
     vector <unique_ptr<promien_slysz>> promienie_sluchu; //tu sa przechowywane dzwieki tupniecia bohatera
-    vector<unique_ptr<potwor>> potwory;
+    vector<unique_ptr<potwor>> potwory; //potwor
+
     Dzwiek dzwiek;
     dzwiek.load_serce_sound("assets/bohater/heartbeat.wav");
     dzwiek.start_serce_system();
@@ -87,16 +88,17 @@ int main()
     set_proper_scale(sciany, Scale_ratioX,Scale_ratioY);
     reset_origin_point(sciany);
     to_draw.push_back(sciany.get());
-
+    //pozycje opisane za pomocą "kratek" (na potrzeby liczenia ścieżki)
     vector<floor_square*> floor_tile=create_floor(image_sciany,Scale_ratioX,Scale_ratioY);
     floor_square* hero_pos=nullptr;
     floor_square* goal=nullptr;
     floor_square* room_goal=nullptr;
     floor_square* monster_pos=nullptr;
+    floor_square* last_monster_pos=nullptr;
 
-    vector<floor_square*> path;
+    vector<floor_square*> path; // tu jest seria "kafelków" które ma odwiedzić potwór po drodze do obranego celu
 
-    const int number_of_rooms=12;
+    const int number_of_rooms=12; //z góry ustalana liczba pokoji które sa na mapie
     vector<room> rooms=create_room();
     if (rooms.empty()) {
         cerr << "Blad: brak pokoi!" << endl;
@@ -108,13 +110,15 @@ int main()
     Texture& drzwi_zam=TextureManager::getInstance().getTexture("assets\\obiekty\\drzwi_zam.png");
     Texture&drzwi_otw=TextureManager::getInstance().getTexture("assets\\obiekty\\drzwi_otw.png");
     drzwi->setTexture(drzwi_zam);
-    drzwi->setScale(0.95f*Scale_general,0.95f*Scale_general);
+    drzwi->setScale(0.95f,0.95f);
+    set_proper_scale(drzwi, Scale_ratioX,Scale_ratioY);
     drzwi->setPosition(windowSize.x/1.239f, windowSize.y/3.5f);
     obiekty.push_back(std::move(drzwi));
 
     unique_ptr<obiekt> terminal = make_unique<obiekt>();
     terminal->setTexture(TextureManager::getInstance().getTexture("assets\\obiekty\\terminal.png"));
-    terminal->setScale(0.05f*Scale_general,0.05f*Scale_general);
+    terminal->setScale(0.05f,0.05f);
+    set_proper_scale(terminal, Scale_ratioX,Scale_ratioY);
     terminal->setPosition(windowSize.x/1.15f, windowSize.y/3.f);
     reset_origin_point(terminal);
     obiekty.push_back(std::move(terminal));
@@ -131,11 +135,14 @@ int main()
     karta2->set_can_pick_up(true);
     karta3->set_can_pick_up(true);
 
-    karta1->setScale(0.02f*Scale_general,0.02f*Scale_general);
-    karta2->setScale(0.02f*Scale_general,0.02f*Scale_general);
-    karta3->setScale(0.02f*Scale_general,0.02f*Scale_general);
+    karta1->setScale(0.02f,0.02f);
+    karta2->setScale(0.02f,0.02f);
+    karta3->setScale(0.02f,0.02f);
+    set_proper_scale(karta1, Scale_ratioX,Scale_ratioY);
+    set_proper_scale(karta2, Scale_ratioX,Scale_ratioY);
+    set_proper_scale(karta3, Scale_ratioX,Scale_ratioY);
 
-    //położenie kart jest losowe
+    //położenie kart jest losowe (1 z 3 możliwych)
     const int polozenie_kart=rand()%3+1;
     switch(polozenie_kart){
         case 1:{
@@ -161,10 +168,11 @@ int main()
     obiekty.push_back(std::move(karta1));
     obiekty.push_back(std::move(karta2));
     obiekty.push_back(std::move(karta3));
-
+    ////OBIEKTY DO CHOWANIA DLA BOHATERA//////
     unique_ptr<obiekt> szafa1 = make_unique<obiekt>();
     szafa1->setTexture(TextureManager::getInstance().getTexture("assets\\obiekty\\szafa.png"));
-    szafa1->setScale(0.95f*Scale_general,0.95f*Scale_general);
+    szafa1->setScale(0.95f,0.95f);
+    set_proper_scale(szafa1, Scale_ratioX,Scale_ratioY);
     reset_origin_point(szafa1);
     szafa1->setPosition(windowSize.x/2.24f, windowSize.y/2.f);
     szafa1->set_can_hide_in(true);
@@ -172,7 +180,8 @@ int main()
 
     unique_ptr<obiekt> szafa2 = make_unique<obiekt>();
     szafa2->setTexture(TextureManager::getInstance().getTexture("assets\\obiekty\\szafa.png"));
-    szafa2->setScale(0.95f*Scale_general,0.95f*Scale_general);
+    szafa2->setScale(0.95f,0.95f);
+    set_proper_scale(szafa2, Scale_ratioX,Scale_ratioY);
     reset_origin_point(szafa2);
     szafa2->setPosition(windowSize.x/5.f, windowSize.y/1.4f);
     szafa2->set_can_hide_in(true);
@@ -180,14 +189,13 @@ int main()
 
     unique_ptr<obiekt> szafa3 = make_unique<obiekt>();
     szafa3->setTexture(TextureManager::getInstance().getTexture("assets\\obiekty\\szafa.png"));
-    szafa3->setScale(0.95f*Scale_general,0.95f*Scale_general);
+    szafa3->setScale(0.95f,0.95f);
+    set_proper_scale(szafa3, Scale_ratioX,Scale_ratioY);
     reset_origin_point(szafa3);
     szafa3->setPosition(windowSize.x/1.67f, windowSize.y/3.1f);
     szafa3->set_can_hide_in(true);
     obiekty_do_chowania.push_back(std::move(szafa3));
-
-
-
+    ////////////////////////////////////////
 
     ////////////////////////////////////
     ///////////Potwor//////////////////
@@ -203,11 +211,11 @@ int main()
     potwory.push_back(std::move(monster));
 
 
-    unique_ptr<ConvexShape> cone = make_unique<ConvexShape>(); //stożek widoczności potwora
+    unique_ptr<ConvexShape> cone = make_unique<ConvexShape>(); //stożek widoczności potwora używany tylko podczas trybu developerskiego (dla lepszej wizualizacji działania systemu widzenia)
     cone->setFillColor(sf::Color(255, 255, 0, 80));
 
     /////////////////////////////////////////////////
-    ////////////////// bohater /////////////////////narazie orientacyjnie
+    ////////////////// bohater /////////////////////
     unique_ptr<bohater>hero = make_unique<bohater>();
     hero->setPosition(windowSize.x/6.f,windowSize.y/2.f);
     hero->setScale(1.2f,1.2f);
@@ -219,15 +227,7 @@ int main()
     postacie.push_back(hero.get());
     dzwiek.load_chodzenie_sound("assets/bohater/ruch.wav");
     ///////////////////////////////////////
-    /////////////////////////////////////////////////////
-    /////zasłona by bohater widział tylko to co ma widzieć/////
-    //unique_ptr<Sprite> fog_of_war = make_unique<Sprite>();
-    //Texture& fowTexture = TextureManager::getInstance().getTexture("assets\\bohater\\fog_of_war.png");
-    //fog_of_war->setTexture(fowTexture);
-    //reset_origin_point(fog_of_war);
-    //fog_of_war->setPosition(hero->getPosition());
-    //to_draw.push_back(fog_of_war.get());
-    //to wyzej to kod mgly wojny ale przy uzyciu sprite, to co jest nizej jest abrdziej fancy
+    ////"mgła wojny" (czarna otoczka wokół bohatera)
     Shader fog_of_war;
     if (!fog_of_war.loadFromFile("assets\\bohater\\mask.frag", Shader::Fragment)) {
         cout << "Nie udalo sie zaladowac shadera!" << endl;
@@ -239,13 +239,13 @@ int main()
     float aktualny_promien=400.f;
     RectangleShape mask(Vector2f(windowSize.x, windowSize.y));
     mask.setFillColor(Color::Black);
-
+    /////////////////////////
 
     ////////////////////////////////////////////////
-    int frame_count1=0, frame_count2=0, frame_count_h=0, frame_count_m=0; //frame counter bohatera i potwora
+    int frame_count1=0, frame_count2=0, frame_count_h=0, frame_count_m=0; //frame counter bohatera i potwora (używane do zmiany klatek animacji )
     Time czas_do_nowego_promienia = Time::Zero;
-    Time czekajnikP = Time::Zero; //liczenie czasu od momentu osiągnięcia pokoju (3 sekundy i idzie dalej)
-    Time czekajnikZ = Time::Zero; //liczenie czasu od momentu zobaczenia/usłyszenia bohatera (jak dojdzie do np. źródła dźwięku czeka sekunde i idzie dalej)
+    Time TimeP = Time::Zero; //liczenie czasu od momentu osiągnięcia pokoju (3 sekundy i idzie dalej)
+    Time TimeZ = Time::Zero; //liczenie czasu od momentu zobaczenia/usłyszenia bohatera (jak dojdzie do np. źródła dźwięku czeka sekunde i idzie dalej)
     bool czy_pokoj_wybrany=false;
     bool koniec=false;
     bool can_use_e = true;
@@ -274,6 +274,8 @@ int main()
         fog_of_war.setUniform("lightCenter", hero->getPosition());
         fog_of_war.setUniform("lightRadius", aktualny_promien);
 
+
+        ///zmienianie klatek animacji bohatera
         const int kl_h=10;
         if ((frame_count1%kl_h)+1==kl_h){
             frame_count_h++;
@@ -295,18 +297,18 @@ int main()
             can_use_e = true;
         }
 
-        // WYJŚCIE
+        // WYJŚCIE z obiektów do chowania
         if (hero->get_is_hidden() && Keyboard::isKeyPressed(Keyboard::E) && can_use_e){
             hero->set_is_hidden(false);
-            can_use_e = false; // zablokuj kolejne wejście do szafy
+            can_use_e = false;
         }
 
-        // WEJŚCIE
+        // WEJŚCIE z obiektów do chowania
         for (auto &t : obiekty_do_chowania){
             if (!hero->get_is_hidden() && distance_between_m(t,hero)<50.f*Scale_general && Keyboard::isKeyPressed(Keyboard::E) && can_use_e){
                 hero->set_is_hidden(true);
                 dzwiek.stop_chodzenie();
-                can_use_e = false; // zablokuj kolejne użycie
+                can_use_e = false;
             }
         }
 
@@ -320,7 +322,7 @@ int main()
             }
         }
 
-        ///aktualizacja pozycji na kratownicy
+        ///aktualizacja pozycji na "kratownicy"
         for (auto &t : floor_tile){
             if (t->get_is_wall()) {
                 t->setFillColor(Color(255, 0, 0, 200));  // czerwony
@@ -346,13 +348,14 @@ int main()
         bool can_hear = check_if_hero_hearable(promienie_sluchu,potwory[0]);
         potwory[0]->set_v_ratio(1.f);
 
-        if (can_see && !hero->get_is_hidden()) {
+
+        if (can_see && !hero->get_is_hidden()) { //jeżeli widzi bohatera to biegnie bezpośrednio do niego
             potwory[0]->set_v_ratio(potwory[0]->get_v_ratio() * 2.f);
             goal = hero_pos;  // Cel = pozycja bohatera
             room_goal=nullptr;
         }
         // Jeśli nie widzi, ale słyszy
-        else if (!promienie_sluchu.empty() && can_hear) {
+        else if (!promienie_sluchu.empty() && can_hear) { // jeżeli słyszy bohatera to biegnie do źródła dźwięku
             potwory[0]->set_v_ratio(potwory[0]->get_v_ratio() * 2.f);
             for (auto &t : floor_tile) {
                 if (t->getGlobalBounds().contains(promienie_sluchu[0]->getPosition())) {
@@ -371,10 +374,9 @@ int main()
         }
 
 
-        if (!can_see && !can_hear && !czy_pokoj_wybrany) {
-            czekajnikP = Time::Zero;
-            const int room_nr = rand() % number_of_rooms; // zakres 0-11
-
+        if (!can_see && !can_hear && !czy_pokoj_wybrany) { //jeżeli nie widzi ani nie słyszy bohatera to potwór biega po pokojach wybierając losowy i losowe miejsce w nim
+            TimeP = Time::Zero;
+            const int room_nr = rand() % number_of_rooms;
             int attempts = 0;
             const int max_attempts = 100;
             bool czy_znalazl = false;
@@ -390,7 +392,6 @@ int main()
                         room_goal = t;
                         goal=nullptr;
                         czy_znalazl = true;
-
                         break;
                     }
                 }
@@ -398,33 +399,33 @@ int main()
             }
         }
 
-        if (goal) {
+        if (goal) { //jeżeli celem jest coś związanego z bohaterem
             for (auto &tile : floor_tile) {
                 tile->reset_astar_state();
             }
-            if (!(distance_between_p(monster_pos, goal) < 30.f*Scale_general)) {
-                path = create_path(floor_tile, goal, monster_pos);
-                czekajnikZ = Time::Zero;  // reset czekania, bo jeszcze nie dotarł
+            if (!(distance_between_p(monster_pos, goal) < 30.f*Scale_general)) { //jeżeli dobiegł do np. źródła dźwięku to chwile w nim postoji i ruszy dalej
+                path = create_path(goal, monster_pos);
+                TimeZ = Time::Zero;  // reset czekania, bo jeszcze nie dotarł
             } else {
-                czekajnikZ += elapsed;
-                    if (czekajnikZ > seconds(1.5f)) {
+                TimeZ += elapsed;
+                    if (TimeZ > seconds(1.5f)) {
                         goal = nullptr;
                         czy_pokoj_wybrany = false;
-                        czekajnikZ = Time::Zero;
+                        TimeZ = Time::Zero;
                         path.clear();  // opcjonalnie: wyczyść ścieżkę po dotarciu
                     }
             }
         }
-        else if (room_goal){
+        else if (room_goal){ //jeżeli celem jest kolejny pokój
             for (auto &tile : floor_tile) {
                 tile->reset_astar_state();
             }
             if (!(distance_between_p(monster_pos,room_goal)<80.f)){
-                path = create_path(floor_tile, room_goal, monster_pos);
+                path = create_path(room_goal, monster_pos);
             }
             else{
-                czekajnikP+=elapsed;
-                if (czekajnikP>seconds(3)){
+                TimeP+=elapsed;
+                if (TimeP>seconds(3)){
                     czy_pokoj_wybrany=false;
                 }
             }
@@ -433,7 +434,7 @@ int main()
             path.clear();  // Brak ścieżki
         }
 
-        const int kl_m=8;
+        const int kl_m=8; //zmiana klatek animacji potwora
         if ((frame_count2%kl_m)+1==kl_m){
             frame_count_m++;
             potwory[0]->change_frame(frame_count_m, Scale_ratioX, Scale_ratioY);
@@ -460,6 +461,10 @@ int main()
             if (d->get_is_hidden()) {continue;}
             window.draw(*d);
         }
+        promienie_sluchu.erase(remove_if(
+                                   promienie_sluchu.begin(), promienie_sluchu.end(), [](const unique_ptr<promien_slysz>& p) {
+                                       return p->get_pozostaly_czas() < seconds(0);}), promienie_sluchu.end());
+
 
         if (!develop_mode){
             window.draw(mask, &fog_of_war);
@@ -474,11 +479,6 @@ int main()
                     window.draw(*p);
                 }
             }
-
-            promienie_sluchu.erase(remove_if(
-                promienie_sluchu.begin(), promienie_sluchu.end(), [](const unique_ptr<promien_slysz>& p) {
-                    return p->get_pozostaly_czas() < seconds(0);}), promienie_sluchu.end());
-
             //////////rysowanie podglogi//////////
 
             for (auto &t : floor_tile){

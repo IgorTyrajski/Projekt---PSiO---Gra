@@ -139,9 +139,10 @@ int main()
     vector<floor_square*> floor_tile=create_floor(image_sciany,Scale_ratioX,Scale_ratioY);
     floor_square* hero_pos=nullptr;
     floor_square* goal=nullptr;
+
     floor_square* room_goal=nullptr;
     floor_square* monster_pos=nullptr;
-    floor_square* last_monster_pos=nullptr;
+
 
     vector<floor_square*> path; // tu jest seria "kafelków" które ma odwiedzić potwór po drodze do obranego celu
 
@@ -300,6 +301,8 @@ int main()
     while (window.isOpen()) {
         Time elapsed=clock.restart();
         Event event;
+
+
         while (window.pollEvent(event)) {
             if (event.type == Event::Closed || koniec)
                 window.close();
@@ -390,9 +393,11 @@ int main()
             }
         }
 
+
         //////////////caly ruch potwora//////////////////////////////////////////////////////////////
         bool can_see = check_if_hero_visible(potwory[0],hero,image_sciany,Scale_general,cone);
         bool can_hear = check_if_hero_hearable(promienie_sluchu,potwory[0]);
+
         potwory[0]->set_v_ratio(1.f);
 
 
@@ -447,33 +452,36 @@ int main()
         }
 
         if (goal) { //jeżeli celem jest coś związanego z bohaterem
-            for (auto &tile : floor_tile) {
-                tile->reset_astar_state();
-            }
+                for (auto &tile : floor_tile) {
+                    tile->reset_astar_state();
+                }
             if (!(distance_between_p(monster_pos, goal) < 30.f*Scale_general)) { //jeżeli dobiegł do np. źródła dźwięku to chwile w nim postoji i ruszy dalej
                 path = create_path(goal, monster_pos);
-                TimeZ = Time::Zero;  // reset czekania, bo jeszcze nie dotarł
+                TimeZ = Time::Zero;
+                  // reset czekania, bo jeszcze nie dotarł
             } else {
                 TimeZ += elapsed;
                     if (TimeZ > seconds(1.5f)) {
                         goal = nullptr;
                         czy_pokoj_wybrany = false;
                         TimeZ = Time::Zero;
-                        path.clear();  // opcjonalnie: wyczyść ścieżkę po dotarciu
                     }
+
             }
         }
         else if (room_goal){ //jeżeli celem jest kolejny pokój
-            for (auto &tile : floor_tile) {
-                tile->reset_astar_state();
-            }
-            if (!(distance_between_p(monster_pos,room_goal)<80.f)){
-                path = create_path(room_goal, monster_pos);
+                for (auto &tile : floor_tile) {
+                    tile->reset_astar_state();
+                }
+
+            if (!(distance_between_p(monster_pos,room_goal)<60.f*Scale_general) ){
+                    path = create_path(room_goal, monster_pos);
             }
             else{
                 TimeP+=elapsed;
                 if (TimeP>seconds(3)){
                     czy_pokoj_wybrany=false;
+                    room_goal=nullptr;
                 }
             }
         }
@@ -508,9 +516,17 @@ int main()
             if (d->get_is_hidden()) {continue;}
             window.draw(*d);
         }
+        for (auto& p : promienie_sluchu) {
+            if (p->get_pozostaly_czas() >= milliseconds(0)) {
+                p->set_pozostaly_czas(p->get_pozostaly_czas() - elapsed);
+                p->setRadius(p->getRadius() + 5.f);
+                reset_origin_point(p);
+
+            }
+        }
         promienie_sluchu.erase(remove_if(
-                                   promienie_sluchu.begin(), promienie_sluchu.end(), [](const unique_ptr<promien_slysz>& p) {
-                                       return p->get_pozostaly_czas() < seconds(0);}), promienie_sluchu.end());
+            promienie_sluchu.begin(), promienie_sluchu.end(), [](const unique_ptr<promien_slysz>& p) {
+                return p->get_pozostaly_czas() < seconds(0.05);}), promienie_sluchu.end());
 
 
         if (!develop_mode){
@@ -518,14 +534,10 @@ int main()
         }
         if (develop_mode) {
             window.draw(*cone);
-            for (auto& p : promienie_sluchu) {
-                if (p->get_pozostaly_czas() >= milliseconds(0)) {
-                    p->set_pozostaly_czas(p->get_pozostaly_czas() - elapsed);
-                    p->setRadius(p->getRadius() + 5.f);
-                    reset_origin_point(p);
-                    window.draw(*p);
-                }
+            for (auto& p : promienie_sluchu){
+                window.draw(*p);
             }
+
             //////////rysowanie podglogi//////////
 
             for (auto &t : floor_tile){

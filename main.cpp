@@ -306,6 +306,11 @@ int main()
         while (window.pollEvent(event)) {
             if (event.type == Event::Closed || koniec)
                 window.close();
+            if (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape)
+            {
+                window.close();
+                return 0;
+            }
         }
         window.clear(Color::Black);
         ////////////ruszanie///////////

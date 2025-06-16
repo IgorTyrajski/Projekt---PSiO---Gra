@@ -25,7 +25,7 @@ using namespace sf;
 int main()
 {
     srand(time(NULL));
-    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
     vector<Sprite*> to_draw;
     vector<Postac*> postacie;
     vector<unique_ptr<obiekt>> obiekty;
@@ -262,6 +262,14 @@ int main()
         if (!hero->get_is_hidden()){
             move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany, promienie_sluchu,czas_do_nowego_promienia,dzwiek,potwory);
         }
+        else
+        {
+            dzwiek.stop_chodzenie();
+        }
+
+        float distance_to_monster = distance_between(potwory[0], hero);
+        dzwiek.update_serce_heartbeat(distance_to_monster);
+
         //fog_of_war->setPosition(hero->getPosition());
         fog_of_war.setUniform("lightCenter", hero->getPosition());
         fog_of_war.setUniform("lightRadius", aktualny_promien);
@@ -297,6 +305,7 @@ int main()
         for (auto &t : obiekty_do_chowania){
             if (!hero->get_is_hidden() && distance_between_m(t,hero)<50.f*Scale_general && Keyboard::isKeyPressed(Keyboard::E) && can_use_e){
                 hero->set_is_hidden(true);
+                dzwiek.stop_chodzenie();
                 can_use_e = false; // zablokuj kolejne użycie
             }
         }

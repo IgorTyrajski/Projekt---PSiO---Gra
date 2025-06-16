@@ -27,7 +27,7 @@ public:
 protected:
 
     Texture texture;
-    bool can_hide_in=false;
+    bool can_hide_in=false; //czy w danym przedmiocie można się schować (w karcie dostępu np. nie można)
     bool can_pick_up=false; //czy mozna podniesc przedmiot (szafy nie mozna np.)
 };
 #endif // OBIEKT_H

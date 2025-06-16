@@ -19,15 +19,15 @@ public:
     };
     // W klasie potwor
     void set_proper_scale(float x_ratio, float y_ratio) {
-        float x = getScale().x;
-        float y = getScale().y;
+        const float x = getScale().x;
+        const float y = getScale().y;
         setScale(x * x_ratio, y * y_ratio);
     }
 
-    void change_frame(int &frame_count, float scaleX, float scaleY) {
+    void change_frame(int &frame_count, float scaleX, float scaleY) { //zmiana klatki animacji
         if (is_moving) {
             setTexture(TextureManager::getInstance().getTexture(text_path_run));;
-            int fr = frame_count % 5;
+            const int fr = frame_count % 5;
             switch (fr) {
             case 0: {setTextureRect(IntRect(16, 5, 105-16, 55-5));break;}
             case 1: {setTextureRect(IntRect(111, 10, 219-111, 55-10));break;}
@@ -39,7 +39,7 @@ public:
 
         } else {
 
-            int fr = frame_count % 5 + 1;
+            const int fr = frame_count % 5 + 1;
             switch (fr) {
             case 3: {setTextureRect(IntRect(4, 2, 68-4, 56-4)); break;}
             case 5: {setTextureRect(IntRect(73, 4, 133-73, 56-4));break;}

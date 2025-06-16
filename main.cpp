@@ -74,7 +74,6 @@ int main()
 
     start_game:
     srand(time(NULL));
-    srand(time(NULL));
     bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
     vector<Sprite*> to_draw; // tu jest mapa, sciany itd.
     vector<Postac*> postacie; // bohater

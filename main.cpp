@@ -17,15 +17,64 @@
 #include "Struct_promien_slyszenia.h"
 #include "TextureManager.h"
 #include "pokoj.h"
-
+#include "menu.h"
 
 using namespace std;
 using namespace sf;
 
 int main()
 {
+    sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+    sf::RenderWindow window(desktop, "Horror Game", sf::Style::Fullscreen);
+    window.setFramerateLimit(60);
+
+    Menu menu(&window);
+
+    while (window.isOpen())
+    {
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            menu.handleInput(event);
+
+            if (event.type == sf::Event::Closed ||
+                (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
+                return 0;
+
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter)
+            {
+                int selected = menu.getSelectedItem();
+                if (selected == 1)
+                    goto start_game;
+                else if (selected == 2)
+                    return 0;
+            }
+
+            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+            {
+                sf::Vector2f clickPos(
+                    static_cast<float>(event.mouseButton.x),
+                    static_cast<float>(event.mouseButton.y)
+                );
+                if (menu.getOption(0).getGlobalBounds().contains(clickPos))
+                {
+                    goto start_game;
+                }
+                else if (menu.getOption(1).getGlobalBounds().contains(clickPos))
+                {
+                    return 0;
+                }
+
+            }
+        }
+
+        menu.draw();
+    }
+
+    return 0;
+    start_game:
     srand(time(NULL));
-    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
     vector<Sprite*> to_draw;
     vector<Postac*> postacie;
     vector<unique_ptr<obiekt>> obiekty;
@@ -39,8 +88,7 @@ int main()
 
     Clock clock;
     ////////window///////////////
-    VideoMode desktop = VideoMode::getDesktopMode();
-    RenderWindow window(desktop, "My window", Style::Fullscreen);
+
 
     Vector2u windowSize = window.getSize();
 

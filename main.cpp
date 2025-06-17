@@ -565,7 +565,7 @@ int main()
         if (!path.empty()){
             move_monster(potwory[0],path,elapsed,Scale_ratioX,Scale_ratioY);
         }
-        if (potwory[0]->getGlobalBounds().intersects(hero->getGlobalBounds()))
+        if (potwory[0]->getGlobalBounds().intersects(hero->getGlobalBounds()) && !hero->get_is_hidden())
         {
             dzwiek.stop_chodzenie();
             dzwiek.stop_background_music();

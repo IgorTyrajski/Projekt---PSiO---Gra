@@ -75,7 +75,7 @@ int main()
 
     start_game:
     srand(time(NULL));
-    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
     vector<Sprite*> to_draw; // tu jest mapa, sciany itd.
     vector<Postac*> postacie; // bohater
     vector<unique_ptr<obiekt>> obiekty; //tu są katy dostępu
@@ -116,6 +116,12 @@ int main()
     end_win->setScale(1,1);
     end_win->setTextureRect(IntRect(0, 0, windowSize.x, windowSize.y));
     set_proper_scale(end_win, Scale_ratioX,Scale_ratioY);
+
+    unique_ptr<Sprite> end_lose = make_unique<Sprite>();
+    end_lose->setTexture(TextureManager::getInstance().getTexture("assets\\ekran_koncowy.png"));
+    end_lose->setScale(1,1);
+    end_lose->setTextureRect(IntRect(0, 0, windowSize.x, windowSize.y));
+    set_proper_scale(end_lose, Scale_ratioX,Scale_ratioY);
 
 
     //////////////// background/////////////////////////////
@@ -312,6 +318,7 @@ int main()
     Time TimeZ = Time::Zero; //liczenie czasu od momentu zobaczenia/usłyszenia bohatera (jak dojdzie do np. źródła dźwięku czeka sekunde i idzie dalej)
     bool czy_pokoj_wybrany=false;
     bool koniec_wygrana=false;
+    bool koniec_przegrana = false;
     bool czy_drzwi_otwarte=false;
     bool can_use_e = true;
     bool previous_can_see = false;
@@ -444,11 +451,6 @@ int main()
 
         potwory[0]->set_v_ratio(1.f);
 
-        if (hero->get_is_hidden() && (goal == hero_pos || can_hear)) {
-            goal = nullptr;
-            czy_pokoj_wybrany = false;
-            TimeZ = Time::Zero;
-        }
 
         if (can_see && !hero->get_is_hidden()) { //jeżeli widzi bohatera to biegnie bezpośrednio do niego
             potwory[0]->set_v_ratio(potwory[0]->get_v_ratio() * 2.f);
@@ -510,7 +512,6 @@ int main()
                   // reset czekania, bo jeszcze nie dotarł
             } else {
                 TimeZ += elapsed;
-                potwory[0]->set_is_running(false);
                     if (TimeZ > seconds(1.5f)) {
                         goal = nullptr;
                         czy_pokoj_wybrany = false;
@@ -529,7 +530,6 @@ int main()
             }
             else{
                 TimeP+=elapsed;
-                potwory[0]->set_is_running(false);
                 if (TimeP>seconds(3)){
                     czy_pokoj_wybrany=false;
                     room_goal=nullptr;
@@ -548,16 +548,25 @@ int main()
         if (!path.empty()){
             move_monster(potwory[0],path,elapsed,Scale_ratioX,Scale_ratioY);
         }
-        else{
-            potwory[0]->set_is_running(false);
-        }
-        if (potwory[0]->getGlobalBounds().intersects(hero->getGlobalBounds())){
-            //jakiś warunek przegranej
+        if (potwory[0]->getGlobalBounds().intersects(hero->getGlobalBounds()))
+        {
+            float distance_to_hero = distance_between(potwory[0], hero);
+            if (distance_to_hero < 30.f * Scale_general)
+            {
+                koniec_przegrana = true;
+                dzwiek.stop_chodzenie();
+                dzwiek.stop_background_music();
+                window.clear(Color::Black);
+                window.draw(*end_lose);
+                window.display();
+                sleep(seconds(5));
+                return main();
+            }
         }
         //////////////////////////////////////////////////////////////////////////
         ///////////////////////////////
         ///////////DRAWING/////////////
-        if (!koniec_wygrana){
+        if (!koniec_wygrana&& !koniec_przegrana){
             for (auto &d : to_draw){
                 window.draw(*d);
             }

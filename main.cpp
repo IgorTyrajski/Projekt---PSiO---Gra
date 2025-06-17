@@ -5,6 +5,7 @@
 #include <iostream>
 #include <algorithm>
 #include <ctime>
+#include <windows.h>
 
 
 #include "move_monster.h"
@@ -103,6 +104,15 @@ int main()
 
     window.setFramerateLimit(60);
     if (develop_mode) {cout << "Okno: " << window_X << " x " << window_Y << endl; cout << "Skala X: " << Scale_ratioX << " Skala Y: " << Scale_ratioY << endl;}
+
+    ////////plansza końcowa/////////////
+    unique_ptr<Sprite> end_win = make_unique<Sprite>();
+    end_win->setTexture(TextureManager::getInstance().getTexture("assets\\ekran_koncowy_wygrana.png"));
+    end_win->setScale(1,1);
+    end_win->setTextureRect(IntRect(0, 0, windowSize.x, windowSize.y));
+    set_proper_scale(end_win, Scale_ratioX,Scale_ratioY);
+
+
     //////////////// background/////////////////////////////
     unique_ptr<Sprite> background = make_unique<Sprite>();
     Texture& bgTexture = TextureManager::getInstance().getTexture("assets\\mapa\\tlo.png");
@@ -160,7 +170,8 @@ int main()
     drzwi->setTexture(drzwi_zam);
     drzwi->setScale(0.95f,0.95f);
     set_proper_scale(drzwi, Scale_ratioX,Scale_ratioY);
-    drzwi->setPosition(windowSize.x/1.239f, windowSize.y/3.5f);
+    reset_origin_point(drzwi);
+    drzwi->setPosition(windowSize.x/1.2f, windowSize.y/3.1f);
     obiekty.push_back(std::move(drzwi));
 
     unique_ptr<obiekt> terminal = make_unique<obiekt>();
@@ -268,8 +279,8 @@ int main()
     hero->setPosition(windowSize.x/6.f,windowSize.y/2.f);
     hero->setScale(1.2f,1.2f);
     hero->set_v_ratio(1.f);
-    hero->set_x_speed(120.f);
-    hero->set_y_speed(120.f);
+    hero->set_x_speed(120.f*4);
+    hero->set_y_speed(120.f*4);
     hero->reset_origin_point();
     set_proper_scale(hero,Scale_ratioX,Scale_ratioY);
     postacie.push_back(hero.get());
@@ -295,7 +306,8 @@ int main()
     Time TimeP = Time::Zero; //liczenie czasu od momentu osiągnięcia pokoju (3 sekundy i idzie dalej)
     Time TimeZ = Time::Zero; //liczenie czasu od momentu zobaczenia/usłyszenia bohatera (jak dojdzie do np. źródła dźwięku czeka sekunde i idzie dalej)
     bool czy_pokoj_wybrany=false;
-    bool koniec=false;
+    bool koniec_wygrana=false;
+    bool czy_drzwi_otwarte=false;
     bool can_use_e = true;
 
     while (window.isOpen()) {
@@ -304,7 +316,7 @@ int main()
 
 
         while (window.pollEvent(event)) {
-            if (event.type == Event::Closed || koniec)
+            if (event.type == Event::Closed)
                 window.close();
             if (event.type == Event::KeyPressed && event.key.code == Keyboard::Escape)
             {
@@ -313,6 +325,7 @@ int main()
             }
         }
         window.clear(Color::Black);
+
         ////////////ruszanie///////////
         if (!hero->get_is_hidden()){
             move_hero(hero, elapsed, Scale_ratioX, Scale_ratioY, image_sciany, promienie_sluchu,czas_do_nowego_promienia,dzwiek,potwory);
@@ -373,10 +386,22 @@ int main()
             if (hero->get_inventory().size()>=2){
                 obiekty[0]->setTexture(drzwi_otw);
                 obiekty[0]->setScale(0.95f*Scale_general,0.95f*Scale_general);
-                obiekty[0]->setPosition(windowSize.x/1.239f, windowSize.y/3.5f);
+                reset_origin_point(obiekty[0]);
+                obiekty[0]->setPosition(windowSize.x/1.2f, windowSize.y/3.1f);
+                czy_drzwi_otwarte=true;
             }
         }
-
+        //sprawdzenie czy bohater jest blisko drzwi i czy są otwarte
+        if (distance_between_m(obiekty[0], hero) < 70.f*Scale_general) {
+            if (czy_drzwi_otwarte){
+                dzwiek.stop_chodzenie();
+                window.clear(Color::Black);
+                window.draw(*end_win);
+                window.display();
+                sleep(seconds(5));
+                return main();
+            }
+        }
         ///aktualizacja pozycji na "kratownicy"
         for (auto &t : floor_tile){
             if (t->get_is_wall()) {
@@ -503,24 +528,30 @@ int main()
             move_monster(potwory[0],path,elapsed,Scale_ratioX,Scale_ratioY);
         }
         if (potwory[0]->getGlobalBounds().intersects(hero->getGlobalBounds())){
-            //koniec=true;
+            //jakiś warunek przegranej
         }
         //////////////////////////////////////////////////////////////////////////
         ///////////////////////////////
         ///////////DRAWING/////////////
-        for (auto &d : to_draw){
-            window.draw(*d);
+        if (!koniec_wygrana){
+            for (auto &d : to_draw){
+                window.draw(*d);
+            }
+            for (auto &t : obiekty ) {
+                window.draw(*t);
+            }
+            for (auto &t : obiekty_do_chowania ) {
+                window.draw(*t);
+            }
+            for (auto &d : postacie){
+                if (d->get_is_hidden()) {continue;}
+                window.draw(*d);
+            }
+            if (!develop_mode){
+                window.draw(mask, &fog_of_war);
+            }
         }
-        for (auto &t : obiekty ) {
-            window.draw(*t);
-        }
-        for (auto &t : obiekty_do_chowania ) {
-            window.draw(*t);
-        }
-        for (auto &d : postacie){
-            if (d->get_is_hidden()) {continue;}
-            window.draw(*d);
-        }
+
         for (auto& p : promienie_sluchu) {
             if (p->get_pozostaly_czas() >= milliseconds(0)) {
                 p->set_pozostaly_czas(p->get_pozostaly_czas() - elapsed);

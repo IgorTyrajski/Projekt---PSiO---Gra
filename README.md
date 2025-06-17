@@ -1,4 +1,7 @@
-**PL:** Wprowadzenie
+## Wprowadzenie / Introduction
+
+**PL:** Wprowadzenie: 
+
 Gra to survival horror z widokiem z góry, inspirowany klimatem Obcy: Izolacja. Gracz wciela się w samotnego bohatera przemierzającego ciemne, opuszczone pomieszczenia w poszukiwaniu wyjścia, unikając nieznanego zagrożenia czającego się w mroku. Gracz zmuszony jest podnieść 2 z 3 kart dostępu by otworzyć drzwi wyjściowe. System „fog of war” ogranicza widoczność do bezpośredniego otoczenia postaci, co potęguje atmosferę napięcia i niepewności. Projekt stworzono z użyciem biblioteki SFML w języku C++.
 
 Instrukcja:

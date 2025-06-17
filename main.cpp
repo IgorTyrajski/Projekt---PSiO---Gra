@@ -458,6 +458,7 @@ int main()
         potwory[0]->set_v_ratio(1.f);
 
 
+
         if (can_see && !hero->get_is_hidden()) { //jeżeli widzi bohatera to biegnie bezpośrednio do niego
             potwory[0]->set_v_ratio(potwory[0]->get_v_ratio() * 2.f);
             goal = hero_pos;  // Cel = pozycja bohatera
@@ -482,6 +483,11 @@ int main()
             goal = nullptr;  // Brak celu
         }
 
+        if (hero->get_is_hidden() && goal!=hero_pos && path.empty()) {
+            goal = nullptr;
+            czy_pokoj_wybrany = false;
+            can_see=false;
+        }
 
         if (!can_see && !can_hear && !czy_pokoj_wybrany) { //jeżeli nie widzi ani nie słyszy bohatera to potwór biega po pokojach wybierając losowy i losowe miejsce w nim
             TimeP = Time::Zero;
@@ -518,6 +524,7 @@ int main()
                   // reset czekania, bo jeszcze nie dotarł
             } else {
                 TimeZ += elapsed;
+                potwory[0]->set_is_running(false);
                     if (TimeZ > seconds(1.5f)) {
                         goal = nullptr;
                         czy_pokoj_wybrany = false;
@@ -536,6 +543,7 @@ int main()
             }
             else{
                 TimeP+=elapsed;
+                potwory[0]->set_is_running(false);
                 if (TimeP>seconds(3)){
                     czy_pokoj_wybrany=false;
                     room_goal=nullptr;

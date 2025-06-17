@@ -75,7 +75,7 @@ int main()
 
     start_game:
     srand(time(NULL));
-    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
     vector<Sprite*> to_draw; // tu jest mapa, sciany itd.
     vector<Postac*> postacie; // bohater
     vector<unique_ptr<obiekt>> obiekty; //tu są katy dostępu
@@ -444,6 +444,11 @@ int main()
 
         potwory[0]->set_v_ratio(1.f);
 
+        if (hero->get_is_hidden() && (goal == hero_pos || can_hear)) {
+            goal = nullptr;
+            czy_pokoj_wybrany = false;
+            TimeZ = Time::Zero;
+        }
 
         if (can_see && !hero->get_is_hidden()) { //jeżeli widzi bohatera to biegnie bezpośrednio do niego
             potwory[0]->set_v_ratio(potwory[0]->get_v_ratio() * 2.f);
@@ -505,6 +510,7 @@ int main()
                   // reset czekania, bo jeszcze nie dotarł
             } else {
                 TimeZ += elapsed;
+                potwory[0]->set_is_running(false);
                     if (TimeZ > seconds(1.5f)) {
                         goal = nullptr;
                         czy_pokoj_wybrany = false;
@@ -523,6 +529,7 @@ int main()
             }
             else{
                 TimeP+=elapsed;
+                potwory[0]->set_is_running(false);
                 if (TimeP>seconds(3)){
                     czy_pokoj_wybrany=false;
                     room_goal=nullptr;
@@ -540,6 +547,9 @@ int main()
         }
         if (!path.empty()){
             move_monster(potwory[0],path,elapsed,Scale_ratioX,Scale_ratioY);
+        }
+        else{
+            potwory[0]->set_is_running(false);
         }
         if (potwory[0]->getGlobalBounds().intersects(hero->getGlobalBounds())){
             //jakiś warunek przegranej

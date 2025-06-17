@@ -40,6 +40,7 @@ public:
         } else {
 
             const int fr = frame_count % 5 + 1;
+            setTexture(TextureManager::getInstance().getTexture(text_path_idle));
             switch (fr) {
             case 3: {setTextureRect(IntRect(4, 2, 68-4, 56-4)); break;}
             case 5: {setTextureRect(IntRect(73, 4, 133-73, 56-4));break;}

@@ -1,3 +1,5 @@
+Link do installera: https://drive.google.com/drive/folders/1RYcdzi3nvuLO-41d1uIoK2Tg6oiqsiOs?usp=sharing
+
 ## Wprowadzenie / Introduction
 
 **PL:** Wprowadzenie: 

@@ -30,52 +30,55 @@ int main()
     sf::RenderWindow window(desktop, "Horror Game", sf::Style::Fullscreen);
     window.setFramerateLimit(60);
 
-    Menu menu(&window);
-
     while (window.isOpen())
     {
-        sf::Event event;
-        while (window.pollEvent(event))
+        Menu menu(&window);
+
+        while (window.isOpen())
         {
-            menu.handleInput(event);
-
-            if (event.type == sf::Event::Closed ||
-                (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
-                return 0;
-
-            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter)
+            sf::Event event;
+            while (window.pollEvent(event))
             {
-                int selected = menu.getSelectedItem();
-                if (selected == 1)
-                    goto start_game;
-                else if (selected == 2)
-                    return 0;
-            }
+                menu.handleInput(event);
 
-            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
-            {
-                sf::Vector2f clickPos(
-                    static_cast<float>(event.mouseButton.x),
-                    static_cast<float>(event.mouseButton.y)
-                );
-                if (menu.getOption(0).getGlobalBounds().contains(clickPos))
-                {
-                    goto start_game;
-                }
-                else if (menu.getOption(1).getGlobalBounds().contains(clickPos))
-                {
+                if (event.type == sf::Event::Closed ||
+                    (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
                     return 0;
+
+                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter)
+                {
+                    int selected = menu.getSelectedItem();
+                    if (selected == 1)
+                        goto start_game;
+                    else if (selected == 2)
+                        return 0;
                 }
 
+                if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+                {
+                    sf::Vector2f clickPos(
+                        static_cast<float>(event.mouseButton.x),
+                        static_cast<float>(event.mouseButton.y)
+                    );
+                    if (menu.getOption(0).getGlobalBounds().contains(clickPos))
+                    {
+                        goto start_game;
+                    }
+                    else if (menu.getOption(1).getGlobalBounds().contains(clickPos))
+                    {
+                        return 0;
+                    }
+
+                }
             }
+
+            menu.draw();
         }
 
-        menu.draw();
-    }
 
     start_game:
     srand(time(NULL));
-    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
     vector<Sprite*> to_draw; // tu jest mapa, sciany itd.
     vector<Postac*> postacie; // bohater
     vector<unique_ptr<obiekt>> obiekty; //tu są katy dostępu
@@ -306,7 +309,7 @@ int main()
     fog_of_war.setUniform("lightRadius", 300.f);
     fog_of_war.setUniform("resolution", Glsl::Vec2(window.getSize()));
 
-    float aktualny_promien=400.f;
+    float aktualny_promien=200.f;
     RectangleShape mask(Vector2f(windowSize.x, windowSize.y));
     mask.setFillColor(Color::Black);
     /////////////////////////
@@ -323,7 +326,8 @@ int main()
     bool can_use_e = true;
     bool previous_can_see = false;
 
-    while (window.isOpen()) {
+    bool game_running = true;
+    while (window.isOpen() && game_running)  {
         Time elapsed=clock.restart();
         Event event;
 
@@ -406,13 +410,15 @@ int main()
         }
         //sprawdzenie czy bohater jest blisko drzwi i czy są otwarte
         if (distance_between_m(obiekty[0], hero) < 70.f*Scale_general) {
-            if (czy_drzwi_otwarte){
+            if (czy_drzwi_otwarte)
+            {
                 dzwiek.stop_chodzenie();
                 window.clear(Color::Black);
                 window.draw(*end_win);
                 window.display();
                 sleep(seconds(5));
-                return main();
+                game_running = false;
+                break;
             }
         }
         ///aktualizacja pozycji na "kratownicy"
@@ -553,14 +559,14 @@ int main()
             float distance_to_hero = distance_between(potwory[0], hero);
             if (distance_to_hero < 30.f * Scale_general)
             {
-                koniec_przegrana = true;
                 dzwiek.stop_chodzenie();
                 dzwiek.stop_background_music();
                 window.clear(Color::Black);
                 window.draw(*end_lose);
                 window.display();
                 sleep(seconds(5));
-                return main();
+                game_running = false;
+                break;
             }
         }
         //////////////////////////////////////////////////////////////////////////
@@ -630,12 +636,27 @@ int main()
         frame_count2++;
         czas_do_nowego_promienia -= elapsed;
 
-        if (potwory.empty()) window.close();
+        if (potwory.empty())
+        {
+            game_running = false;
+            break;
+        }
 
     }
 
-    for (floor_square* ptr : floor_tile) {
+
+    for (floor_square* ptr : floor_tile)
+    {
         delete ptr;
     }
-    return 0;
+
+
+    if (!window.isOpen())
+    {
+        break;
+    }
+
+}
+
+return 0;
 }

@@ -20,9 +20,15 @@ private:
     SoundBuffer buffer_chodzenie;
     Sound sound_chodzenie;
     bool is_playing_chodzenie = false;
+
     Music background_music;
     bool background_music_loaded = false;
     bool background_music_playing = false;
+
+    SoundBuffer buffer_krzyk;
+    Sound sound_krzyk;
+    bool krzyk_loaded = false;
+    bool krzyk_playing = false;
 
 public:
     Dzwiek() = default;
@@ -189,6 +195,49 @@ float get_current_heartbeat_interval() const
     bool is_background_music_playing() const
     {
         return background_music_playing && (background_music.getStatus() == Music::Playing);
+    }
+    bool load_krzyk_sound(const string& filepath)
+    {
+        if (!buffer_krzyk.loadFromFile(filepath))
+        {
+            cout << "Nie udalo sie zaladowac dzwieku krzyku: " << filepath << endl;
+            return false;
+        }
+        sound_krzyk.setBuffer(buffer_krzyk);
+        sound_krzyk.setLoop(false);
+        sound_krzyk.setVolume(100.f);
+        krzyk_loaded = true;
+        return true;
+    }
+
+    void play_krzyk()
+    {
+        if (krzyk_loaded && !krzyk_playing)
+        {
+            sound_krzyk.play();
+            krzyk_playing = true;
+        }
+    }
+
+    void set_krzyk_volume(float volume)
+    {
+        if (krzyk_loaded)
+        {
+            sound_krzyk.setVolume(volume);
+        }
+    }
+
+    bool is_krzyk_playing() const
+    {
+        return krzyk_playing && (sound_krzyk.getStatus() == Sound::Playing);
+    }
+
+    void update_krzyk_status()
+    {
+        if (krzyk_playing && sound_krzyk.getStatus() == Sound::Stopped)
+        {
+            krzyk_playing = false;
+        }
     }
 };
 

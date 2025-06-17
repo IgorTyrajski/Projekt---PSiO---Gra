@@ -90,6 +90,8 @@ int main()
     dzwiek.load_background_music("assets/bohater/ambience.wav");
     dzwiek.start_background_music();
 
+    dzwiek.load_krzyk_sound("assets/bohater/krzyk.wav");
+
 
     Clock clock;
     ////////window///////////////
@@ -312,6 +314,7 @@ int main()
     bool koniec_wygrana=false;
     bool czy_drzwi_otwarte=false;
     bool can_use_e = true;
+    bool previous_can_see = false;
 
     while (window.isOpen()) {
         Time elapsed=clock.restart();
@@ -430,6 +433,14 @@ int main()
         //////////////caly ruch potwora//////////////////////////////////////////////////////////////
         bool can_see = check_if_hero_visible(potwory[0],hero,image_sciany,Scale_general,cone);
         bool can_hear = check_if_hero_hearable(promienie_sluchu,potwory[0]);
+
+        dzwiek.update_krzyk_status();
+
+        if (can_see && !hero->get_is_hidden() && !previous_can_see) {
+            dzwiek.play_krzyk();
+        }
+
+        previous_can_see = can_see && !hero->get_is_hidden();
 
         potwory[0]->set_v_ratio(1.f);
 

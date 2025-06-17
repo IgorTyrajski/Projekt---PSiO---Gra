@@ -109,7 +109,7 @@ int main()
     Clock gameClock;
     Time gameStartTime = gameClock.getElapsedTime();
     srand(time(NULL));
-    bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
+    bool develop_mode=false; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
     vector<Sprite*> to_draw; // tu jest mapa, sciany itd.
     vector<Postac*> postacie; // bohater
     vector<unique_ptr<obiekt>> obiekty; //tu są katy dostępu
@@ -324,8 +324,8 @@ int main()
     hero->setPosition(windowSize.x/6.f,windowSize.y/2.f);
     hero->setScale(1.2f,1.2f);
     hero->set_v_ratio(1.f);
-    hero->set_x_speed(120.f*4);
-    hero->set_y_speed(120.f*4);
+    hero->set_x_speed(120.f);
+    hero->set_y_speed(120.f);
     hero->reset_origin_point();
     set_proper_scale(hero,Scale_ratioX,Scale_ratioY);
     postacie.push_back(hero.get());

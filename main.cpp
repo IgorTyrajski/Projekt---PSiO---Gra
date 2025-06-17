@@ -6,7 +6,9 @@
 #include <algorithm>
 #include <ctime>
 #include <windows.h>
-
+#include <fstream>
+#include <sstream>
+#include <iomanip>
 
 #include "move_monster.h"
 #include "funkcje.h"
@@ -23,6 +25,33 @@
 
 using namespace std;
 using namespace sf;
+
+vector<Time> loadScores()
+{
+    vector<Time> scores;
+    ifstream file("scores.txt");
+    string line;
+    while (getline(file, line))
+    {
+        float seconds = stof(line);
+        scores.push_back(sf::seconds(seconds));
+    }
+    sort(scores.begin(), scores.end());
+    return scores;
+}
+
+void saveScore(Time time)
+{
+    vector<Time> scores = loadScores();
+    scores.push_back(time);
+    sort(scores.begin(), scores.end());
+
+    ofstream file("scores.txt");
+    for (const auto& score : scores)
+    {
+        file << score.asSeconds() << "\n";
+    }
+}
 
 int main()
 {
@@ -77,6 +106,8 @@ int main()
 
 
     start_game:
+    Clock gameClock;
+    Time gameStartTime = gameClock.getElapsedTime();
     srand(time(NULL));
     bool develop_mode=true; //tryb "deweloperski" wylacza np. mgle wojny tak aby bylo widac co sie dzieje
     vector<Sprite*> to_draw; // tu jest mapa, sciany itd.
@@ -418,6 +449,9 @@ int main()
                 window.clear(Color::Black);
                 window.draw(*end_win);
                 window.display();
+                Time gameEndTime = gameClock.getElapsedTime();
+                Time totalTime = gameEndTime - gameStartTime;
+                saveScore(totalTime);
                 sleep(seconds(5));
                 game_running = false;
                 break;
@@ -667,3 +701,4 @@ int main()
 
 return 0;
 }
+

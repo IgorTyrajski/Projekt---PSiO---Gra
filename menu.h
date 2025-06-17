@@ -3,6 +3,13 @@
 
 #include <SFML/Graphics.hpp>
 #include <array>
+#include <iostream>
+#include <algorithm>
+#include <iomanip>
+#include <sstream>
+
+std::vector<sf::Time> loadScores();
+void saveScore(sf::Time time);
 
 enum GameState {
     MENU,
@@ -14,13 +21,23 @@ class Menu {
 private:
     sf::RenderWindow* window;
     sf::Font font;
+    sf::Font scoreFont;
     std::array<sf::Text, 2> options;
     int selectedItem = 0;
+    std::vector<sf::Text> scoreTexts;
+    std::vector<sf::Time> bestScores;
 
 public:
-    Menu(sf::RenderWindow* win) : window(win) {
-        font.loadFromFile("assets/font.ttf");
-
+    Menu(sf::RenderWindow* win) : window(win)
+    {
+        if (!font.loadFromFile("assets/font.ttf"))
+        {
+            std::cerr << "Blad: nie udalo sie zaladowac glownej czcionki!" << std::endl;
+        }
+        if (!scoreFont.loadFromFile("C:\\Windows\\Fonts\\arial.ttf"))
+        {
+            std::cerr << "Blad: nie udalo sie zaladowac czcionki systemowej do wynikow!" << std::endl;
+        }
         options[0].setFont(font);
         options[0].setString("Graj");
         options[0].setCharacterSize(64);
@@ -32,12 +49,20 @@ public:
         options[1].setCharacterSize(64);
         options[1].setPosition(200, 300);
         options[1].setFillColor(sf::Color::White);
+
+        loadBestScores();
     }
 
-    void draw() {
+    void draw()
+    {
         window->clear();
-        for (auto& option : options) {
+        for (auto& option : options)
+        {
             window->draw(option);
+        }
+        for (auto& scoreText : scoreTexts)
+        {
+            window->draw(scoreText);
         }
         window->display();
     }
@@ -66,7 +91,6 @@ public:
             }
         }
 
-        // Klikniêcie myszy – ustawia wybran¹ opcjê
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
             sf::Vector2f clickPos(static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y));
             for (size_t i = 0; i < options.size(); ++i) {
@@ -81,9 +105,42 @@ public:
     {
         return options.at(index);
     }
+    void loadBestScores()
+    {
+        bestScores = loadScores();
+        scoreTexts.clear();
+
+        sf::Text header;
+        header.setFont(font);
+        header.setString("Najlepsze wyniki:");
+        header.setCharacterSize(48);
+        header.setPosition(600, 150);
+        header.setFillColor(sf::Color::Yellow);
+        scoreTexts.push_back(header);
+
+        for (size_t i = 0; i < std::min(bestScores.size(), size_t(5)); ++i)
+        {
+            int minutes = static_cast<int>(bestScores[i].asSeconds()) / 60;
+            int seconds = static_cast<int>(bestScores[i].asSeconds()) % 60;
+
+
+            std::ostringstream ss;
+            ss << (i + 1) << ". "<< minutes << ":"<< std::setw(2) << std::setfill('0') << seconds;
+
+            sf::Text scoreText;
+            scoreText.setFont(scoreFont);
+            scoreText.setString(ss.str());
+            scoreText.setCharacterSize(36);
+            scoreText.setPosition(600, 220 + i * 50);
+            scoreText.setFillColor(sf::Color::White);
+            scoreTexts.push_back(scoreText);
+        }
+    }
 private:
-    void updateSelection() {
-        for (size_t i = 0; i < options.size(); ++i) {
+    void updateSelection()
+    {
+        for (size_t i = 0; i < options.size(); ++i)
+        {
             options[i].setFillColor(i == selectedItem ? sf::Color::Red : sf::Color::White);
         }
     }

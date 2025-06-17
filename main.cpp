@@ -87,6 +87,9 @@ int main()
     dzwiek.load_serce_sound("assets/bohater/heartbeat.wav");
     dzwiek.start_serce_system();
 
+    dzwiek.load_background_music("assets/bohater/ambience.wav");
+    dzwiek.start_background_music();
+
 
     Clock clock;
     ////////window///////////////

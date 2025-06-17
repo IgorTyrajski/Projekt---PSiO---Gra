@@ -20,6 +20,9 @@ private:
     SoundBuffer buffer_chodzenie;
     Sound sound_chodzenie;
     bool is_playing_chodzenie = false;
+    Music background_music;
+    bool background_music_loaded = false;
+    bool background_music_playing = false;
 
 public:
     Dzwiek() = default;
@@ -125,6 +128,67 @@ float get_current_heartbeat_interval() const
     void set_chodzenie_volume(float volume)
     {
         sound_chodzenie.setVolume(volume);
+    }
+    bool load_background_music(const string& filepath)
+    {
+        if (!background_music.openFromFile(filepath))
+        {
+            cout << "Nie udalo sie zaladowac muzyki w tle: " << filepath << endl;
+            return false;
+        }
+        background_music.setLoop(true);
+        background_music.setVolume(25.f);
+        background_music_loaded = true;
+        return true;
+    }
+
+    void start_background_music()
+    {
+        if (background_music_loaded && !background_music_playing)
+        {
+            background_music.play();
+            background_music_playing = true;
+        }
+    }
+
+    void stop_background_music()
+    {
+        if (background_music_loaded && background_music_playing)
+        {
+            background_music.stop();
+            background_music_playing = false;
+        }
+    }
+
+    void pause_background_music()
+    {
+        if (background_music_loaded && background_music_playing)
+        {
+            background_music.pause();
+            background_music_playing = false;
+        }
+    }
+
+    void resume_background_music()
+    {
+        if (background_music_loaded && !background_music_playing)
+        {
+            background_music.play();
+            background_music_playing = true;
+        }
+    }
+
+    void set_background_volume(float volume)
+    {
+        if (background_music_loaded)
+        {
+            background_music.setVolume(volume);
+        }
+    }
+
+    bool is_background_music_playing() const
+    {
+        return background_music_playing && (background_music.getStatus() == Music::Playing);
     }
 };
 

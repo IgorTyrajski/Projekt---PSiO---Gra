@@ -399,8 +399,10 @@ int main()
 
 
         /////////////////////otwarcie drzwi/////////////
-        if (distance_between_m(obiekty[1], hero) < 70.f*Scale_general) {
-            if (hero->get_inventory().size()>=2){
+        if (distance_between_m(obiekty[1], hero) < 70.f*Scale_general)
+        {
+            if (hero->get_inventory().size()>=2)
+            {
                 obiekty[0]->setTexture(drzwi_otw);
                 obiekty[0]->setScale(0.95f*Scale_general,0.95f*Scale_general);
                 reset_origin_point(obiekty[0]);
@@ -409,7 +411,7 @@ int main()
             }
         }
         //sprawdzenie czy bohater jest blisko drzwi i czy są otwarte
-        if (distance_between_m(obiekty[0], hero) < 70.f*Scale_general) {
+        if (distance_between_m(obiekty[0], hero) < 85.f*Scale_general) {
             if (czy_drzwi_otwarte)
             {
                 dzwiek.stop_chodzenie();
@@ -421,6 +423,7 @@ int main()
                 break;
             }
         }
+
         ///aktualizacja pozycji na "kratownicy"
         for (auto &t : floor_tile){
             if (t->get_is_wall()) {
@@ -564,18 +567,14 @@ int main()
         }
         if (potwory[0]->getGlobalBounds().intersects(hero->getGlobalBounds()))
         {
-            float distance_to_hero = distance_between(potwory[0], hero);
-            if (distance_to_hero < 30.f * Scale_general)
-            {
-                dzwiek.stop_chodzenie();
-                dzwiek.stop_background_music();
-                window.clear(Color::Black);
-                window.draw(*end_lose);
-                window.display();
-                sleep(seconds(5));
-                game_running = false;
-                break;
-            }
+            dzwiek.stop_chodzenie();
+            dzwiek.stop_background_music();
+            window.clear(Color::Black);
+            window.draw(*end_lose);
+            window.display();
+            sleep(seconds(5));
+            game_running = false;
+            break;
         }
         //////////////////////////////////////////////////////////////////////////
         ///////////////////////////////
